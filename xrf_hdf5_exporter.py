@@ -36,7 +36,7 @@ def export_xrf_hdf5(scanid):
     import pyxrf
     logger.info(f"{pyxrf.__file__ = }")
     import dask
-    logger.info(f"{pyxrf.__file__ = }")
+    logger.info(f"{dask.__file__ = }")
     from pyxrf.api import make_hdf
 
     # Load header for our scan
