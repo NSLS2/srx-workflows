@@ -7,17 +7,17 @@ CATALOG_NAME = "srx"
 import sys, os
 conda_env = "2024-2.3-py310-tiled"
 python_ver = "python3.10"
-# overlay = [
-#     f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages",
-#     f"/nsls2/conda/envs/{conda_env}/bin",
-#     f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}",
-#     f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/lib-dynload",
-#     f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/site-packages",
-# ]
-# sys.path[:0] = overlay
-PYTHONUSERBASE = f"/nsls2/data/{CATALOG_NAME}/shared/config/bluesky_overlay/{conda_env}"
-os.environ["PYTHONUSERBASE"] = PYTHONUSERBASE
-sys.path[:0] = f"{PYTHONUSERBASE}/bin"
+overlay = [
+    f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages",
+    f"/nsls2/conda/envs/{conda_env}/bin",
+    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}",
+    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/lib-dynload",
+    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/site-packages",
+]
+sys.path[:0] = overlay
+# PYTHONUSERBASE = f"/nsls2/data/{CATALOG_NAME}/shared/config/bluesky_overlay/{conda_env}"
+# os.environ["PYTHONUSERBASE"] = PYTHONUSERBASE
+# sys.path[:0] = f"{PYTHONUSERBASE}/bin"
 ###############################################################################
 
 import glob
@@ -25,7 +25,7 @@ import os
 import stat
 
 from tiled.client import from_profile
-from pyxrf.api import make_hdf
+# from pyxrf.api import make_hdf
 
 tiled_client = from_profile("nsls2")[CATALOG_NAME]
 tiled_client_raw = tiled_client["raw"]
@@ -35,6 +35,7 @@ def export_xrf_hdf5(scanid):
     logger = get_run_logger()
     import pyxrf
     logger.info(f"{pyxrf.__file__ = }")
+    from pyxrf.api import make_hdf
 
     # Load header for our scan
     h = tiled_client_raw[scanid]
