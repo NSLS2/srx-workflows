@@ -5,7 +5,7 @@ CATALOG_NAME = "srx"
 ### Temporary solution until prefect deployment updates to 2024 environment ###
 ###############################################################################
 import sys
-conda_env = "2024-1.0-py310-tiled"
+conda_env = "2024-2.3-py310-tiled"
 python_ver = "python3.10"
 overlay = [
     f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages",
