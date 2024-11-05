@@ -33,7 +33,8 @@ tiled_client_raw = tiled_client["raw"]
 @task
 def export_xrf_hdf5(scanid):
     logger = get_run_logger()
-    logger.info(f"{make_hdf.__file__ = }")
+    import pyxrf
+    logger.info(f"{pyxrf.__file__ = }")
 
     # Load header for our scan
     h = tiled_client_raw[scanid]
