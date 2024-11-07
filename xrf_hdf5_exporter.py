@@ -4,25 +4,29 @@ CATALOG_NAME = "srx"
 
 ### Temporary solution until prefect deployment updates to 2024 environment ###
 ###############################################################################
-import sys, os
-conda_env = "2024-1.0-py310-tiled"
-python_ver = "python3.10"
-overlay = [
-    f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages",
-    f"/nsls2/conda/envs/{conda_env}/bin",
-    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}",
-    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/lib-dynload",
-    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/site-packages",
-]
-sys.path[:0] = overlay
-# PYTHONUSERBASE = f"/nsls2/data/{CATALOG_NAME}/shared/config/bluesky_overlay/{conda_env}"
-# os.environ["PYTHONUSERBASE"] = PYTHONUSERBASE
-# sys.path[:0] = f"{PYTHONUSERBASE}/bin"
+# import sys, os
+# conda_env = "2024-1.0-py310-tiled"
+# python_ver = "python3.10"
+# overlay = [
+#     f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages",
+#     f"/nsls2/conda/envs/{conda_env}/bin",
+#     f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}",
+#     f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/lib-dynload",
+#    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/site-packages",
+#]
+#sys.path[:0] = overlay
 ###############################################################################
 
 import glob
 import os
+import sys
 import stat
+
+# This should be set in Ansible after discussing with SRX
+# https://github.com/nsls2/ansible/blob/ee63a2a1d2132da3436e4b6c3230188141495966/roles/prefect2_worker/defaults/main.yml#L353
+conda_env = "2024-2.3-py310-tiled"
+python_ver = "python3.10"
+sys.path[:0] = [f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages"]
 
 from tiled.client import from_profile
 # from pyxrf.api import make_hdf
