@@ -2,21 +2,6 @@ from prefect import flow, task, get_run_logger
 
 CATALOG_NAME = "srx"
 
-### Temporary solution until prefect deployment updates to 2024 environment ###
-###############################################################################
-# import sys, os
-# conda_env = "2024-1.0-py310-tiled"
-# python_ver = "python3.10"
-# overlay = [
-#     f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages",
-#     f"/nsls2/conda/envs/{conda_env}/bin",
-#     f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}",
-#     f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/lib-dynload",
-#    f"/nsls2/conda/envs/{conda_env}/lib/{python_ver}/site-packages",
-#]
-#sys.path[:0] = overlay
-###############################################################################
-
 import glob
 import os
 import sys
@@ -65,6 +50,8 @@ def export_xrf_hdf5(scanid):
         working_dir = f"/nsls2/data/srx/proposals/commissioning/{h.start['data_session']}"
     else:
         working_dir = f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}"  # noqa: E501
+
+    os.umask(0o007)  # Read/write access for user and group only
 
     prefix = "autorun_scan2D_"
 
