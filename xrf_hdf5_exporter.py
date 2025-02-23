@@ -40,7 +40,7 @@ def export_xrf_hdf5(scanid):
     # Check if this is an alignment scan
     # scan_input array consists of [startx, stopx, number pts x, start y, stop y, num pts y, dwell]
     idx_NUM_PTS_Y = 5
-    if h.start["scan"]["scan_input"][idx_NUM_PTS_Y] == 1:
+    if h.start["scan"]["type"] == "XRF_FLY" and h.start["scan"]["scan_input"][idx_NUM_PTS_Y] == 1:
         logger.info(
             "This is likely an alignment scan. Not running pyxrf.api.make_hdf on this document."
         )
