@@ -50,21 +50,22 @@ def logscan_detailed(scanid):
     if not is_scanid:
         # Let's build the string
         #   Each scan should have a scan ID and UID
-        out_str = f"{h.start["scan_id"]}\t{h.start["uid"]}"
+        out_str = f"{h.start['scan_id']}\t{h.start['uid']}"
         #   I don't think the "scan" dictionary is guaranteed with each scan
         #   I think this is SRX-custom-scan specific
         if "scan" in h.start:
             # type probably exists if scan exists, but better to check
             if "type" in h.start["scan"]:
-                out_str += f"\t{h.start["scan"]["type"]}"
+                out_str += f"\t{h.start['scan']['type']}"
                 # This is not in every scan type, e.g. peakup
                 if "scan_input" in h.start["scan"]:
-                    out_str += f"\t{h.start["scan"]["scan_input"]}"
+                    out_str += f"\t{h.start['scan']['scan_input']}"
         else:
             # We should probably record what the scan was, e.g. count, scan, rel_scan
-            # What is the proper field that is always valid?
             if "plan_name" in h.start:
-                out_str += f"\t{h.start["plan_name"]}"
+                out_str += f"\t{h.start['plan_name']}"
+            else:
+                out_str += f"\tunknown scan"
         out_str += "\n"
 
         # Write to file
