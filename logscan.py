@@ -48,17 +48,29 @@ def logscan_detailed(scanid):
         is_scanid = find_scanid(logfile_path, h.start["scan_id"])
 
     if not is_scanid:
+        # Let's build the string
+        #   Each scan should have a scan ID and UID
+        out_str = f"{h.start['scan_id']}\t{h.start['uid']}"
+        #   I don't think the "scan" dictionary is guaranteed with each scan
+        #   I think this is SRX-custom-scan specific
+        if "scan" in h.start:
+            # type probably exists if scan exists, but better to check
+            if "type" in h.start["scan"]:
+                out_str += f"\t{h.start['scan']['type']}"
+                # This is not in every scan type, e.g. peakup
+                if "scan_input" in h.start["scan"]:
+                    out_str += f"\t{h.start['scan']['scan_input']}"
+        else:
+            # We should probably record what the scan was, e.g. count, scan, rel_scan
+            if "plan_name" in h.start:
+                out_str += f"\t{h.start['plan_name']}"
+            else:
+                out_str += f"\tunknown scan"
+        out_str += "\n"
+
+        # Write to file
         with open(logfile_path, "a") as userlogf:
-            userlogf.write(
-                str(h.start["scan_id"])
-                + "\t"
-                + str(h.start["uid"])
-                + "\t"
-                + str(h.start["scan"]["type"])
-                + "\t"
-                + str(h.start["scan"]["scan_input"])
-                + "\n"
-            )
+            userlogf.write(out_str)
             logger.info(f"Added {h.start['scan_id']} to the logs")
 
 
