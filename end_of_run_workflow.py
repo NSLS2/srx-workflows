@@ -3,6 +3,8 @@ from data_validation import data_validation
 from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
 from logscan import logscan
+from prefect.blocks.notifications import SlackWebhook
+
 
 @task
 def log_completion():
@@ -18,3 +20,5 @@ def end_of_run_workflow(stop_doc):
     xrf_hdf5_exporter(uid)
     logscan(uid)
     log_completion()
+    slack_webhook_block = SlackWebhook.load("mon-prefect")
+    slack_webhook_block.notify(f"Hello from SRX! run_start: {uid}")
