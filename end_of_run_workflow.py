@@ -25,5 +25,5 @@ def end_of_run_workflow(stop_doc):
         slack_webhook_block.notify(f"Hello from SRX! run_start: {uid}")
     except Exception as e:
         slack_webhook_block = SlackWebhook.load("mon-prefect")
-        slack_webhook_block.notify(f"Hello from SRX! Export failed for run_start: {uid}")
+        slack_webhook_block.notify(f"@srx-support Export failed for run_start: {uid}")
         raise e
