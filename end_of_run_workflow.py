@@ -14,11 +14,16 @@ def log_completion():
 
 @flow
 def end_of_run_workflow(stop_doc):
-    uid = stop_doc["run_start"]
-    # data_validation(uid, return_state=True)
-    xanes_exporter(uid)
-    xrf_hdf5_exporter(uid)
-    logscan(uid)
-    log_completion()
-    slack_webhook_block = SlackWebhook.load("mon-prefect")
-    slack_webhook_block.notify(f"Hello from SRX! run_start: {uid}")
+    try:
+        uid = stop_doc["run_start"]
+        # data_validation(uid, return_state=True)
+        xanes_exporter(uid)
+        xrf_hdf5_exporter(uid)
+        logscan(uid)
+        log_completion()
+        slack_webhook_block = SlackWebhook.load("mon-prefect")
+        slack_webhook_block.notify(f"Hello from SRX! run_start: {uid}")
+    except Exception as e:
+        slack_webhook_block = SlackWebhook.load("mon-prefect")
+        slack_webhook_block.notify(f"Hello from SRX! Export failed for run_start: {uid}")
+        raise e
