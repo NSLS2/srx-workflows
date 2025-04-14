@@ -43,5 +43,5 @@ def end_of_run_workflow(stop_doc):
 
     slack_webhook_block = SlackWebhook.load("mon-prefect")
     slack_webhook_block.notify(
-        f":white_check_mark: *SRX flow-run successful.*\n *run_start*: {uid}\n *scan_id*: {scan_id}"
+        f":white_check_mark: *SRX flow-run successful.*\n ```run_start: {uid}\nscan_id: {scan_id}```"
     )
