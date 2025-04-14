@@ -1,3 +1,5 @@
+import traceback
+
 from prefect import task, flow, get_run_logger
 from data_validation import data_validation
 from xanes_exporter import xanes_exporter
