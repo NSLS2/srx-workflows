@@ -6,6 +6,7 @@ from logscan import logscan
 from prefect.blocks.notifications import SlackWebhook
 
 from tiled.client import from_profile
+
 CATALOG_NAME = "srx"
 
 
@@ -23,16 +24,21 @@ def end_of_run_workflow(stop_doc):
         # Get the scan_id
         tiled_client = from_profile("nsls2")[CATALOG_NAME]
         tiled_client_raw = tiled_client["raw"]
-        scan_id = tiled_client_raw[uid].start['scan_id']
+        scan_id = tiled_client_raw[uid].start["scan_id"]
 
         # data_validation(uid, return_state=True)
         xanes_exporter(uid)
         xrf_hdf5_exporter(uid)
         logscan(uid)
         log_completion()
-        slack_webhook_block = SlackWebhook.load("mon-prefect")
-        slack_webhook_block.notify(f"SRX Export successful\n run_start: {uid}\n scan_id: {scan_id}")
     except Exception as e:
         slack_webhook_block = SlackWebhook.load("mon-prefect")
-        slack_webhook_block.notify(f"SRX Export failed\n run_start: {uid}\n scan_id: {scan_id}")
+        slack_webhook_block.notify(
+            f":bangbang: SRX flow-run failed.\n run_start: {uid}\n scan_id: {scan_id}\n ```{tb[-1]}``` <@srx-prefect>"
+        )
         raise
+
+    slack_webhook_block = SlackWebhook.load("mon-prefect")
+    slack_webhook_block.notify(
+        f":white_check_mark: SRX flow-run successful.\n run_start: {uid}\n scan_id: {scan_id}"
+    )
