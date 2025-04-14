@@ -19,7 +19,7 @@ def slack(func):
     Send a message to mon-prefect slack channel about the flow-run status.
     """
 
-    def wrapper(run_stop):
+    def wrapper(stop_doc):
         flow_run_name = FlowRunContext.get().flow_run.dict().get("name")
         slack_webhook = SlackWebhook.load("mon-prefect")
 
@@ -32,7 +32,7 @@ def slack(func):
         scan_id = tiled_client_raw[uid].start["scan_id"]
 
         try:
-            result = func(run_stop)
+            result = func(stop_doc)
             slack_webhook.notify(
                 f":white_check_mark: {CATALOG_NAME} flow-run successful. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}```"
             )
