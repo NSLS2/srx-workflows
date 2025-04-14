@@ -22,7 +22,7 @@ def log_completion():
 
 @flow
 def end_of_run_workflow(stop_doc):
-    flow_run_name = FlowRunContext.get().flow_run.dict().get('name')
+    flow_run_name = FlowRunContext.get().flow_run.dict().get("name")
 
     try:
         uid = stop_doc["run_start"]
@@ -41,7 +41,7 @@ def end_of_run_workflow(stop_doc):
         tb = traceback.format_exception_only(e)
         slack_webhook_block = SlackWebhook.load("mon-prefect")
         slack_webhook_block.notify(
-                f":bangbang: SRX flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
+            f":bangbang: SRX flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
         )
         raise
 
