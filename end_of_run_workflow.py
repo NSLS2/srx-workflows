@@ -37,7 +37,7 @@ def end_of_run_workflow(stop_doc):
         tb = traceback.format_exception_only(e)
         slack_webhook_block = SlackWebhook.load("mon-prefect")
         slack_webhook_block.notify(
-            f":bangbang: *SRX flow-run failed.*\n *run_start*: {uid}\n *scan_id*: {scan_id}\n ```{tb[-1]}```"
+            f":bangbang: *SRX flow-run failed.*\n ```run_start: {uid}\n scan_id: {scan_id}\n\n {tb[-1]}```"
         )
         raise
 
