@@ -1,11 +1,13 @@
 import traceback
 
 from prefect import task, flow, get_run_logger
+from prefect.blocks.notifications import SlackWebhook
+from prefect.context import FlowRunContext
+
 from data_validation import data_validation
 from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
 from logscan import logscan
-from prefect.blocks.notifications import SlackWebhook
 
 from tiled.client import from_profile
 
@@ -20,6 +22,8 @@ def log_completion():
 
 @flow
 def end_of_run_workflow(stop_doc):
+    flow_run_name = FlowRunContext.get().flow_run.dict().get('name')
+
     try:
         uid = stop_doc["run_start"]
 
@@ -37,11 +41,11 @@ def end_of_run_workflow(stop_doc):
         tb = traceback.format_exception_only(e)
         slack_webhook_block = SlackWebhook.load("mon-prefect")
         slack_webhook_block.notify(
-            f":bangbang: *SRX flow-run failed.*\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
+                f":bangbang: SRX flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
         )
         raise
 
     slack_webhook_block = SlackWebhook.load("mon-prefect")
     slack_webhook_block.notify(
-        f":white_check_mark: *SRX flow-run successful.*\n ```run_start: {uid}\nscan_id: {scan_id}```"
+        f":white_check_mark: SRX flow-run successful. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}```"
     )
