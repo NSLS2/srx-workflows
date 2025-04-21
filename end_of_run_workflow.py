@@ -21,7 +21,8 @@ def slack(func):
 
     def wrapper(stop_doc):
         flow_run_name = FlowRunContext.get().flow_run.dict().get("name")
-        slack_webhook = SlackWebhook.load("mon-prefect")
+        mon_prefect = SlackWebhook.load("mon-prefect")
+        mon_bluesky = SlackWebhook.load("mon-bluesky")
 
         # Get the uid.
         uid = stop_doc["run_start"]
@@ -31,15 +32,20 @@ def slack(func):
         tiled_client_raw = tiled_client["raw"]
         scan_id = tiled_client_raw[uid].start["scan_id"]
 
+        if stop_doc['exit_status'] == "fail":
+            mon_bluesky.notify(
+                    f":white_check_mark: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get("reason", "none")}```}"
+            )
+
         try:
             result = func(stop_doc)
-            slack_webhook.notify(
+            mon_prefect.notify(
                 f":white_check_mark: {CATALOG_NAME} flow-run successful. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}```"
             )
             return result
         except Exception as e:
             tb = traceback.format_exception_only(e)
-            slack_webhook.notify(
+            mon_prefect.notify(
                 f":bangbang: {CATALOG_NAME} flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
             )
             raise
