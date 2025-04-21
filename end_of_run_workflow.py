@@ -32,7 +32,7 @@ def slack(func):
         tiled_client_raw = tiled_client["raw"]
         scan_id = tiled_client_raw[uid].start["scan_id"]
 
-        if stop_doc["exit_status"] == "fail":
+        if stop_doc.get("exit_status") == "fail":
             mon_bluesky.notify(
                 f":bangbang: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get("reason", "none")}```"
             )
