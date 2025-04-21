@@ -34,7 +34,7 @@ def slack(func):
 
         if stop_doc['exit_status'] == "fail":
             mon_bluesky.notify(
-                    f":white_check_mark: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get("reason", "none")}```}"
+                    f":bangbang: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get("reason", "none")}```}"
             )
 
         try:
