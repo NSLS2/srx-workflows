@@ -30,7 +30,7 @@ push:
 pull:
   - prefect.deployments.steps.git_clone:
       repository: https://github.com/nsls-ii-srx/workflows.git
-      branch: main
+      branch: prefect3-pixi-upgrade
 
 deployments:
   - name: srx-end-of-run-workflow-docker
