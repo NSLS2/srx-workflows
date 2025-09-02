@@ -28,13 +28,15 @@ push:
         - main
 
 pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: /repo
   - prefect.deployments.steps.git_clone:
       repository: https://github.com/nsls-ii-srx/workflows.git
       branch: prefect3-pixi-upgrade
 
 deployments:
   - name: srx-end-of-run-workflow-docker
-    version: 0.1.0
+    version: 0.1.1
     description: Deploy the updated Docker image
     entrypoint: end_of_run_workflow.py:end_of_run_workflow
     parameters: {}
@@ -45,9 +47,10 @@ deployments:
           TILED_SITE_PROFILES: /nsls2/software/etc/tiled/profiles
           TILED_API_KEY: "{{ prefect.blocks.secret.tiled-srx-api-key }}"
         image: ghcr.io/nsls2/srx-workflow-prefect3:main
-        network_mode: host
-        userns: "keep-id:uid=402949,gid=402949"  # workflow-srx:workflow-srx
+        network: slirp4netns
         volumes:
           - /nsls2/data/srx/proposals:/nsls2/data/srx/proposals
           - /nsls2/software/etc/tiled:/nsls2/software/etc/tiled
+        container_create_kwargs:
+          userns_mode: "keep-id:uid=402949,gid=402949"  # workflow-srx:workflow-srx
       name: srx-work-pool-docker
