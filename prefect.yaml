@@ -31,7 +31,7 @@ pull:
   - prefect.deployments.steps.set_working_directory:
       directory: /repo
   - prefect.deployments.steps.git_clone:
-      repository: https://github.com/nsls-ii-srx/workflows.git
+      repository: https://github.com/JunAishima/srx-workflows.git
       branch: prefect3-pixi-upgrade
 
 deployments:
