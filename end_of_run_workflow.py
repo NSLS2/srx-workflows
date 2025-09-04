@@ -20,7 +20,7 @@ def slack(func):
     Send a message to mon-bluesky slack channel if the bluesky-run failed.
     """
 
-    def wrapper(stop_doc):
+    def end_of_run_workflow(stop_doc):
         flow_run_name = FlowRunContext.get().flow_run.dict().get("name")
 
         # Load slack credentials that are saved in Prefect.
@@ -58,7 +58,7 @@ def slack(func):
             )
             raise
 
-    return wrapper
+    return end_of_run_workflow
 
 
 @task
