@@ -4,14 +4,7 @@ CATALOG_NAME = "srx"
 
 import glob
 import os
-import sys
 import stat
-
-# This should be set in Ansible after discussing with SRX
-# https://github.com/nsls2/ansible/blob/ee63a2a1d2132da3436e4b6c3230188141495966/roles/prefect2_worker/defaults/main.yml#L353
-conda_env = "2024-2.3-py310-tiled"
-python_ver = "python3.10"
-sys.path[:0] = [f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages"]
 
 from tiled.client import from_profile
 # from pyxrf.api import make_hdf
