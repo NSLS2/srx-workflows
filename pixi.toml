@@ -8,6 +8,7 @@ prefect = ">=3.4.12"
 tiled-client = ">0.1.b036"
 databroker = "*"
 xraylib = "*"
+scikit-beam = "*"
 
 [pypi-dependencies]
 pyxrf = { git = "https://github.com/NSLS2/pyxrf.git", rev="7b7d868" }
