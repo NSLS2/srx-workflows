@@ -18,6 +18,10 @@ def slack(func):
     """
     Send a message to mon-prefect slack channel about the flow-run status.
     Send a message to mon-bluesky slack channel if the bluesky-run failed.
+
+    NOTE: the name of this inner function is the same as the real end_of_workflow() function because
+    when the decorator is used, Prefect sees the name of this inner function as the name of
+    the flow. To keep the naming of workflows consistent, the name of this inner function had to match the expected name.
     """
 
     def end_of_run_workflow(stop_doc):
