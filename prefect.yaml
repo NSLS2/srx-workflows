@@ -31,4 +31,5 @@ deployments:
           - /nsls2/software/etc/tiled:/nsls2/software/etc/tiled
         container_create_kwargs:
           userns_mode: "keep-id:uid=402949,gid=402949"  # workflow-srx:workflow-srx
+        auto_remove: true
       name: srx-work-pool-docker
