@@ -10,7 +10,7 @@ pull:
       directory: /repo
   - prefect.deployments.steps.git_clone:
       repository: https://github.com/nsls2/srx-workflows.git
-      branch: main
+      branch: prefect3-pixi-upgrade
 
 deployments:
   - name: srx-end-of-run-workflow-docker
@@ -24,7 +24,7 @@ deployments:
         env:
           TILED_SITE_PROFILES: /nsls2/software/etc/tiled/profiles
           TILED_API_KEY: "{{ prefect.blocks.secret.tiled-srx-api-key }}"
-        image: ghcr.io/nsls2/srx-workflows:main
+        image: ghcr.io/nsls2/srx-workflows:prefect3-pixi-upgrade
         network: slirp4netns
         volumes:
           - /nsls2/data/srx/proposals:/nsls2/data/srx/proposals
