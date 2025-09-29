@@ -3,6 +3,9 @@ from prefect.blocks.system import Secret
 from tiled.client import from_profile
 
 import time as ttime
+import numpy as np
+import xraylib as xrl
+import pandas as pd
 
 
 api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
@@ -226,10 +229,123 @@ def xanes_afterscan_plan(scanid):
     )
 
 
+@task
+def xas_fly_exporter(uid):
+    # Get a scan header
+    hdr = tiled_client_raw[uid]
+
+    # Get proposal directory location
+    if "Beamline Commissioning (beamline staff only)".lower() in hdr.start["proposal"]["type"].lower():
+        root = f"/nsls2/data/srx/proposals/commissioning/{hdr.start['data_session']}/"
+    else:
+        root = f"/nsls2/data/srx/proposals/{hdr.start['cycle']}/{hdr.start['data_session']}/"
+
+    # Identify scan streams
+    scan_streams = list(hdr)
+    scan_streams.remove("baseline")
+    scan_streams = [s for s in scan_streams if "monitor" not in s]  # Is this still necessary?
+
+    # ROI information
+    roi_num = start_doc["scan"]["roi_num"]
+    roi_name = start_doc["scan"]["roi_names][roi_num-1]    
+    roi_symbol, roi_line = roi_name.split('_')
+    roi_Z = xrl.SymbolToAtomicNumber(roi_symbol)
+    if "ka" in roi_line.lower():
+        roi_line_ind = xrl.KA_LINE
+    elif "kb" in roi_line.lower():
+        roi_line_ind = xrl.KB_LINE
+    elif "la" in roi_line.lower():
+        roi_line_ind = xrl.LA_LINE
+    elif "lb" in roi_line.lower():
+        roi_line_ind = xrl.LB_LINE
+    else:
+        logger.info("Line identification failed")
+        return
+
+    # Get bin values
+    E = xrl.LineEnergy(roi_Z, roi_line_ind)
+    E_bin = np.round(E * 100, decimals=0).astype(int)
+    E_width = 10
+    E_min = E_bin - E_width
+    E_max = E_bin + E_width
+
+    # Get ring current
+    ring_current_start = np.round(hdr["baseline"]["data"]["ring_current"][0], decimals=0).astype(str)
+
+    # Static header
+    staticheader = f"# XDI/1.0 MX/2.0\n" \
+                 + f"# Beamline.name: {hdr.start['beamline_id']}\n" \
+                 + f"# Facility.name: NSLS-II\n" \
+                 + f"# Facility.ring_current: {ring_current_start}\n" \
+                 + f"# IVU.harmonic: {hdr.start['scan']['harmonic']}\n" \
+                 + f"# Mono.name: Si 111\n" \
+                 + f"# Scan.start.uid: {hdr.start['uid']}\n" \
+                 + f"# Scan.start.scanid: {hdr.start['scan_id']}\n" \
+                 + f"# Scan.start.time: {hdr.start['time']}\n" \
+                 + f"# Scan.start.ctime: {ttime.ctime(hdr.start['time'])}\n" \
+                 + f"# Scan.ROI.name: {hdr.start['scan']['roi_names'][roi-1]}\n" \
+                 + f"# Scan.ROI.number: {roi_num}\n" \
+                 + f"# Scan.ROI.range: {f'[{E_min}:{E_max}]'}\n" \
+                 + f"# \n"
+
+    for stream in sorted(scan_streams):
+        # Set a filename
+        fname = f"scan_{hdr.start['scan_id']}_{stream}.txt"
+        fname = root + fname
+
+        # Get the full table
+        tbl = hdr[stream]["data"]
+        df = pd.DataFrame()
+        keys = [k for k in tbl.keys()[:] if "time" not in k]
+        for k in keys: 
+            print(f"{k=}")
+            if "channel" in k:
+                # We will process later
+                continue
+            df[k] = tbl[k].read()
+
+        df.set_index("energy", drop=True, inplace=True)
+
+        ch_names = [ch for ch in keys if "channel" in ch]
+        for ch in ch_names:
+            df[ch] = np.sum(tbl[ch].read()[:, e_min:e_max], axis=1)
+            df.rename(columns={ch : ch.split('_')[-1]}, inplace=True)
+        df['ch_sum'] = df[[ch for ch in df.keys() if "channel" in ch]].sum(axis=1)
+
+        # Prepare for export
+        col_names = [df.index.name] + list(df.columns)
+        for i, col in enumerate(col_names):
+            staticheader += f"# Column {i+1:02}: {col}\n"
+        staticheader += "# \n# "
+
+        # Export data to file
+        with open(fname, 'w') as f:
+            f.write(staticheader)
+        df.to_csv(fname, float_format="%.3f", sep=' ', mode='a')
+
+
+
 @flow(log_prints=True)
 def xanes_exporter(ref):
     logger = get_run_logger()
     logger.info("Start writing file with xanes_exporter...")
-    xanes_afterscan_plan(ref)
+
+    # Get scan type
+    scan_type = "unknown"
+    start_doc = tiled_client_raw[ref].start
+    if "scan" in start_doc:
+        if "type" in start_doc["scan"]:
+            scan_type = start_doc["scan"]["type"]
+
+    # Redirect to correction function - or pass
+    if scan_type == "XAS_STEP":
+        logger.info("Starting xanes step-scan exporter.")
+        xanes_afterscan_plan(ref)
+    elif scan_type == "XAS_FLY":
+        logger.info("Starting xanes fly-scan exporter.")
+        xas_fly_exporter(ref)
+    else:
+        logger.info("Not a recognized xanes scan.")
+        
     logger.info("Finish writing file with xanes_exporter.")
 
