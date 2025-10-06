@@ -9,7 +9,7 @@ from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
 from logscan import logscan
 
-from tiled.client import from_profile
+from utils import get_tiled_client
 
 CATALOG_NAME = "srx"
 
@@ -35,7 +35,7 @@ def slack(func):
         uid = stop_doc["run_start"]
 
         # Get the scan_id.
-        tiled_client = from_profile("nsls2")[CATALOG_NAME]
+        tiled_client = get_tiled_client()
         tiled_client_raw = tiled_client["raw"]
         scan_id = tiled_client_raw[uid].start["scan_id"]
 

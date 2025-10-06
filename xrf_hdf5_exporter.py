@@ -6,10 +6,10 @@ import glob
 import os
 import stat
 
-from tiled.client import from_profile
+from utils import get_tiled_client
 # from pyxrf.api import make_hdf
 
-tiled_client = from_profile("nsls2")[CATALOG_NAME]
+tiled_client = get_tiled_client()
 tiled_client_raw = tiled_client["raw"]
 
 @task
