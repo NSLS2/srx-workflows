@@ -23,7 +23,6 @@ deployments:
       job_variables:
         env:
           TILED_SITE_PROFILES: /nsls2/software/etc/tiled/profiles
-          TILED_API_KEY: "{{ prefect.blocks.secret.tiled-srx-api-key }}"
         image: ghcr.io/nsls2/srx-workflows:prefect3-pixi-upgrade
         network: slirp4netns
         volumes:
