@@ -1,10 +1,10 @@
 from prefect import flow, task, get_run_logger
-from utils import get_tiled_client
+from tiled.client import from_profile
 
 import time as ttime
 
 
-tiled_client = get_tiled_client()
+tiled_client = from_profile("nsls2")["srx"]
 tiled_client_raw = tiled_client["raw"]
 
 
