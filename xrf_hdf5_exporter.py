@@ -1,4 +1,5 @@
 from prefect import flow, task, get_run_logger
+from prefect.blocks.system import Secret
 
 CATALOG_NAME = "srx"
 
@@ -9,7 +10,8 @@ import stat
 from tiled.client import from_profile
 # from pyxrf.api import make_hdf
 
-tiled_client = from_profile("nsls2")[CATALOG_NAME]
+api_key = Secret.load("tiled-srx-api-key").get()
+tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
 tiled_client_raw = tiled_client["raw"]
 
 @task
