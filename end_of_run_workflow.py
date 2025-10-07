@@ -2,6 +2,7 @@ import traceback
 
 from prefect import task, flow, get_run_logger
 from prefect.blocks.notifications import SlackWebhook
+from prefect.blocks.system import Secret
 from prefect.context import FlowRunContext
 
 from data_validation import data_validation
@@ -35,7 +36,8 @@ def slack(func):
         uid = stop_doc["run_start"]
 
         # Get the scan_id.
-        tiled_client = from_profile("nsls2")[CATALOG_NAME]
+        api_key = Secret.load("tiled-srx-api-key").get()
+        tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
         tiled_client_raw = tiled_client["raw"]
         scan_id = tiled_client_raw[uid].start["scan_id"]
 

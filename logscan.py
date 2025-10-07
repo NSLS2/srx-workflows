@@ -1,9 +1,11 @@
 from pathlib import Path
 from prefect import flow, task, get_run_logger
+from prefect.blocks.system import Secret
 from tiled.client import from_profile
 
 
-tiled_client = from_profile("nsls2")["srx"]
+api_key = Secret.load("tiled-srx-api-key").get()
+tiled_client = from_profile("nsls2", api_key=api_key)["srx"]
 tiled_client_raw = tiled_client["raw"]
 
 
