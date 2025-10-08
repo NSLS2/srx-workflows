@@ -1,22 +1,17 @@
 from prefect import flow, task, get_run_logger
+from prefect.blocks.system import Secret
 
 CATALOG_NAME = "srx"
 
 import glob
 import os
-import sys
 import stat
-
-# This should be set in Ansible after discussing with SRX
-# https://github.com/nsls2/ansible/blob/ee63a2a1d2132da3436e4b6c3230188141495966/roles/prefect2_worker/defaults/main.yml#L353
-conda_env = "2024-2.3-py310-tiled"
-python_ver = "python3.10"
-sys.path[:0] = [f"/nsls2/data/srx/shared/config/bluesky_overlay/{conda_env}/lib/{python_ver}/site-packages"]
 
 from tiled.client import from_profile
 # from pyxrf.api import make_hdf
 
-tiled_client = from_profile("nsls2")[CATALOG_NAME]
+api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
+tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
 tiled_client_raw = tiled_client["raw"]
 
 @task
@@ -56,6 +51,7 @@ def export_xrf_hdf5(scanid):
     prefix = "autorun_scan2D_"
 
     logger.info(f"{working_dir =}")
+    os.environ["TILED_API_KEY"] = api_key  # pyxrf assumes Tiled API key as an environment variable
     make_hdf(scanid, wd=working_dir, prefix=prefix, catalog_name=CATALOG_NAME)
 
     # chmod g+w for created file(s)
