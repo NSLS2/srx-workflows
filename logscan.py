@@ -4,7 +4,7 @@ from prefect.blocks.system import Secret
 from tiled.client import from_profile
 
 
-api_key = Secret.load("tiled-srx-api-key").get()
+api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
 tiled_client = from_profile("nsls2", api_key=api_key)["srx"]
 tiled_client_raw = tiled_client["raw"]
 
