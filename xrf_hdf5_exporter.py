@@ -51,6 +51,7 @@ def export_xrf_hdf5(scanid):
     prefix = "autorun_scan2D_"
 
     logger.info(f"{working_dir =}")
+    os.environ["TILED_API_KEY"] = api_key  # pyxrf assumes Tiled API key as an environment variable
     make_hdf(scanid, wd=working_dir, prefix=prefix, catalog_name=CATALOG_NAME)
 
     # chmod g+w for created file(s)
