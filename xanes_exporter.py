@@ -342,8 +342,7 @@ def xanes_exporter(ref):
     logger.info("Start writing file with xanes_exporter...")
 
     # Get scan type
-    start_doc = tiled_client_raw[ref].start
-    scan_type = start_doc.get("scan", {}).get("type", "unknown")
+    scan_type = tiled_client_raw[ref].start.get("scan", {}).get("type", "unknown")
 
     # Redirect to correction function - or pass
     if scan_type == "XAS_STEP":
