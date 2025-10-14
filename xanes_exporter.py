@@ -239,13 +239,9 @@ def xas_fly_exporter(uid):
     start_doc = hdr.start
 
     # Get proposal directory location
-    if (
-        "Beamline Commissioning (beamline staff only)".lower()
-        in hdr.start["proposal"]["type"].lower()
-    ):
-        root = f"/nsls2/data/srx/proposals/commissioning/{hdr.start['data_session']}/"
-    else:
-        root = f"/nsls2/data/srx/proposals/{hdr.start['cycle']}/{hdr.start['data_session']}/"
+    is_commissioning = "beamline commissioning" in start_doc["proposal"]["type"].lower()
+    cycle = "commissioning" if is_commissioning else start_doc["cycle"]
+    root = f"/nsls2/data/srx/proposals/{cycle}/{start_doc['data_session']}/"
 
     # Identify scan streams
     scan_streams = [s for s in hdr if s != "baseline" and "monitor" not in s]
