@@ -248,11 +248,7 @@ def xas_fly_exporter(uid):
         root = f"/nsls2/data/srx/proposals/{hdr.start['cycle']}/{hdr.start['data_session']}/"
 
     # Identify scan streams
-    scan_streams = list(hdr)
-    scan_streams.remove("baseline")
-    scan_streams = [
-        s for s in scan_streams if "monitor" not in s
-    ]  # Is this still necessary?
+    scan_streams = [s for s in hdr if s != "baseline" and "monitor" not in s]
 
     # ROI information
     roi_num = start_doc["scan"]["roi_num"]
