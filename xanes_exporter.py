@@ -342,20 +342,17 @@ def xanes_exporter(ref):
     logger.info("Start writing file with xanes_exporter...")
 
     # Get scan type
-    scan_type = "unknown"
     start_doc = tiled_client_raw[ref].start
-    if "scan" in start_doc:
-        if "type" in start_doc["scan"]:
-            scan_type = start_doc["scan"]["type"]
+    scan_type = start_doc.get("scan", {}).get("type", "unknown")
 
     # Redirect to correction function - or pass
     if scan_type == "XAS_STEP":
         logger.info("Starting xanes step-scan exporter.")
         xanes_afterscan_plan(ref)
+        logger.info("Finished writing file with xanes step-scan exporter.")
     elif scan_type == "XAS_FLY":
         logger.info("Starting xanes fly-scan exporter.")
         xas_fly_exporter(ref)
+        logger.info("Finished writing file with xanes fly-scan exporter.")
     else:
         logger.info("Not a recognized xanes scan.")
-
-    logger.info("Finish writing file with xanes_exporter.")
