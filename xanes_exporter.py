@@ -36,7 +36,10 @@ def xanes_textout(
     """
 
     h = tiled_client_raw[scanid]
-    if "Beamline Commissioning (beamline staff only)".lower() in h.start["proposal"]["type"].lower():
+    if (
+        "Beamline Commissioning (beamline staff only)".lower()
+        in h.start["proposal"]["type"].lower()
+    ):
         filepath = f"/nsls2/data/srx/proposals/commissioning/{h.start['data_session']}/scan_{h.start['scan_id']}_xanes.txt"
     else:
         filepath = f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}/scan_{h.start['scan_id']}_xanes.txt"  # noqa: E501
@@ -85,9 +88,7 @@ def xanes_textout(
             if item in dataset_client.keys():
                 # retrieve the data from tiled that is going to be used
                 # in the file
-                file_data[item] = dataset_client[
-                    item
-                ].read()
+                file_data[item] = dataset_client[item].read()
                 f.write("# Column." + str(idx + 1) + ": " + item + "\n")
 
         f.write("# ")
@@ -113,8 +114,7 @@ def xanes_textout(
                             f.write("{0:8.6g}  ".format(usercolumn[item][idx]))
                         except KeyError:
                             offset = True
-                            f.write("{0:8.6g}  ".format(
-                                usercolumn[item][idx + 1]))
+                            f.write("{0:8.6g}  ".format(usercolumn[item][idx + 1]))
                     else:
                         f.write("{0:8.6g}  ".format(usercolumn[item][idx + 1]))
             f.write("\n")
@@ -130,9 +130,7 @@ def xanes_afterscan_plan(scanid):
     h = tiled_client_raw[scanid]
 
     if h.start["scan"].get("type") != "XAS_STEP":
-        logger.info(
-            "Incorrect document type. Not running exporter on this document."
-        )
+        logger.info("Incorrect document type. Not running exporter on this document.")
         return
     # Construct basic header information
     userheaderitem = {}
@@ -165,7 +163,9 @@ def xanes_afterscan_plan(scanid):
             xs_channels = h["primary"].descriptors[0]["object_keys"]["xs"]
             for xs_channel in xs_channels:
                 logger.info(f"Current xs_channel: {xs_channel}")
-                if "mca" + roi_name in xs_channel and "total_rbv" in xs_channel:  # noqa: E501
+                if (
+                    "mca" + roi_name in xs_channel and "total_rbv" in xs_channel
+                ):  # noqa: E501
                     roi_key.append(xs_channel)
 
             columnitem.extend(roi_key)
@@ -204,7 +204,9 @@ def xanes_afterscan_plan(scanid):
             roi_name = "roi{:02}".format(i)
             roi_key = []
             for xs_channel in xs_channels:
-                if "mca" + roi_name in xs_channel and "total_rbv" in xs_channel:  # noqa: E501
+                if (
+                    "mca" + roi_name in xs_channel and "total_rbv" in xs_channel
+                ):  # noqa: E501
                     roi_key.append(xs_channel)
             roisum = sum(datatable[roi_key].to_array()).to_series()
             roisum = roisum.rename_axis("seq_num").rename(lambda x: x + 1)
@@ -236,7 +238,10 @@ def xas_fly_exporter(uid):
     start_doc = hdr.start
 
     # Get proposal directory location
-    if "Beamline Commissioning (beamline staff only)".lower() in hdr.start["proposal"]["type"].lower():
+    if (
+        "Beamline Commissioning (beamline staff only)".lower()
+        in hdr.start["proposal"]["type"].lower()
+    ):
         root = f"/nsls2/data/srx/proposals/commissioning/{hdr.start['data_session']}/"
     else:
         root = f"/nsls2/data/srx/proposals/{hdr.start['cycle']}/{hdr.start['data_session']}/"
@@ -244,12 +249,14 @@ def xas_fly_exporter(uid):
     # Identify scan streams
     scan_streams = list(hdr)
     scan_streams.remove("baseline")
-    scan_streams = [s for s in scan_streams if "monitor" not in s]  # Is this still necessary?
+    scan_streams = [
+        s for s in scan_streams if "monitor" not in s
+    ]  # Is this still necessary?
 
     # ROI information
     roi_num = start_doc["scan"]["roi_num"]
-    roi_name = start_doc["scan"]["roi_names"][roi_num-1]    
-    roi_symbol, roi_line = roi_name.split('_')
+    roi_name = start_doc["scan"]["roi_names"][roi_num - 1]
+    roi_symbol, roi_line = roi_name.split("_")
     roi_Z = xrl.SymbolToAtomicNumber(roi_symbol)
     if "ka" in roi_line.lower():
         roi_line_ind = xrl.KA_LINE
@@ -271,23 +278,27 @@ def xas_fly_exporter(uid):
     E_max = E_bin + E_width
 
     # Get ring current
-    ring_current_start = np.round(hdr["baseline"]["data"]["ring_current"][0], decimals=0).astype(str)
+    ring_current_start = np.round(
+        hdr["baseline"]["data"]["ring_current"][0], decimals=0
+    ).astype(str)
 
     # Static header
-    staticheader = f"# XDI/1.0 MX/2.0\n" \
-                 + f"# Beamline.name: {hdr.start['beamline_id']}\n" \
-                 + f"# Facility.name: NSLS-II\n" \
-                 + f"# Facility.ring_current: {ring_current_start}\n" \
-                 + f"# IVU.harmonic: {hdr.start['scan']['harmonic']}\n" \
-                 + f"# Mono.name: Si 111\n" \
-                 + f"# Scan.start.uid: {hdr.start['uid']}\n" \
-                 + f"# Scan.start.scanid: {hdr.start['scan_id']}\n" \
-                 + f"# Scan.start.time: {hdr.start['time']}\n" \
-                 + f"# Scan.start.ctime: {ttime.ctime(hdr.start['time'])}\n" \
-                 + f"# Scan.ROI.name: {roi_name}\n" \
-                 + f"# Scan.ROI.number: {roi_num}\n" \
-                 + f"# Scan.ROI.range: {f'[{E_min}:{E_max}]'}\n" \
-                 + f"# \n"
+    staticheader = (
+        f"# XDI/1.0 MX/2.0\n"
+        + f"# Beamline.name: {hdr.start['beamline_id']}\n"
+        + f"# Facility.name: NSLS-II\n"
+        + f"# Facility.ring_current: {ring_current_start}\n"
+        + f"# IVU.harmonic: {hdr.start['scan']['harmonic']}\n"
+        + f"# Mono.name: Si 111\n"
+        + f"# Scan.start.uid: {hdr.start['uid']}\n"
+        + f"# Scan.start.scanid: {hdr.start['scan_id']}\n"
+        + f"# Scan.start.time: {hdr.start['time']}\n"
+        + f"# Scan.start.ctime: {ttime.ctime(hdr.start['time'])}\n"
+        + f"# Scan.ROI.name: {roi_name}\n"
+        + f"# Scan.ROI.number: {roi_num}\n"
+        + f"# Scan.ROI.range: {f'[{E_min}:{E_max}]'}\n"
+        + f"# \n"
+    )
 
     for stream in sorted(scan_streams):
         # Set a filename
@@ -298,7 +309,7 @@ def xas_fly_exporter(uid):
         tbl = hdr[stream]["data"]
         df = pd.DataFrame()
         keys = [k for k in tbl.keys()[:] if "time" not in k]
-        for k in keys: 
+        for k in keys:
             print(f"{k=}")
             if "channel" in k:
                 # We will process later
@@ -310,8 +321,8 @@ def xas_fly_exporter(uid):
         ch_names = [ch for ch in keys if "channel" in ch]
         for ch in ch_names:
             df[ch] = np.sum(tbl[ch].read()[:, E_min:E_max], axis=1)
-            df.rename(columns={ch : ch.split('_')[-1]}, inplace=True)
-        df['ch_sum'] = df[[ch for ch in df.keys() if "channel" in ch]].sum(axis=1)
+            df.rename(columns={ch: ch.split("_")[-1]}, inplace=True)
+        df["ch_sum"] = df[[ch for ch in df.keys() if "channel" in ch]].sum(axis=1)
 
         # Prepare for export
         col_names = [df.index.name] + list(df.columns)
@@ -320,10 +331,9 @@ def xas_fly_exporter(uid):
         staticheader += "# \n# "
 
         # Export data to file
-        with open(fname, 'w') as f:
+        with open(fname, "w") as f:
             f.write(staticheader)
-        df.to_csv(fname, float_format="%.3f", sep=' ', mode='a')
-
+        df.to_csv(fname, float_format="%.3f", sep=" ", mode="a")
 
 
 @flow(log_prints=True)
@@ -347,6 +357,5 @@ def xanes_exporter(ref):
         xas_fly_exporter(ref)
     else:
         logger.info("Not a recognized xanes scan.")
-        
-    logger.info("Finish writing file with xanes_exporter.")
 
+    logger.info("Finish writing file with xanes_exporter.")
