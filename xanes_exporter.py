@@ -354,4 +354,4 @@ def xanes_exporter(ref):
         xas_fly_exporter(ref)
         logger.info("Finished writing file with xanes fly-scan exporter.")
     else:
-        logger.info("Not a recognized xanes scan.")
+        logger.info(f"xanes exporter for {scan_type=} not available")
