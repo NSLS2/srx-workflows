@@ -233,6 +233,7 @@ def xanes_afterscan_plan(scanid):
 def xas_fly_exporter(uid):
     # Get a scan header
     hdr = tiled_client_raw[uid]
+    start_doc = hdr.start
 
     # Get proposal directory location
     if "Beamline Commissioning (beamline staff only)".lower() in hdr.start["proposal"]["type"].lower():
@@ -247,7 +248,7 @@ def xas_fly_exporter(uid):
 
     # ROI information
     roi_num = start_doc["scan"]["roi_num"]
-    roi_name = start_doc["scan"]["roi_names][roi_num-1]    
+    roi_name = start_doc["scan"]["roi_names"][roi_num-1]    
     roi_symbol, roi_line = roi_name.split('_')
     roi_Z = xrl.SymbolToAtomicNumber(roi_symbol)
     if "ka" in roi_line.lower():
@@ -283,7 +284,7 @@ def xas_fly_exporter(uid):
                  + f"# Scan.start.scanid: {hdr.start['scan_id']}\n" \
                  + f"# Scan.start.time: {hdr.start['time']}\n" \
                  + f"# Scan.start.ctime: {ttime.ctime(hdr.start['time'])}\n" \
-                 + f"# Scan.ROI.name: {hdr.start['scan']['roi_names'][roi-1]}\n" \
+                 + f"# Scan.ROI.name: {roi_name}\n" \
                  + f"# Scan.ROI.number: {roi_num}\n" \
                  + f"# Scan.ROI.range: {f'[{E_min}:{E_max}]'}\n" \
                  + f"# \n"
@@ -308,7 +309,7 @@ def xas_fly_exporter(uid):
 
         ch_names = [ch for ch in keys if "channel" in ch]
         for ch in ch_names:
-            df[ch] = np.sum(tbl[ch].read()[:, e_min:e_max], axis=1)
+            df[ch] = np.sum(tbl[ch].read()[:, E_min:E_max], axis=1)
             df.rename(columns={ch : ch.split('_')[-1]}, inplace=True)
         df['ch_sum'] = df[[ch for ch in df.keys() if "channel" in ch]].sum(axis=1)
 
