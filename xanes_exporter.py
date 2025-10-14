@@ -121,7 +121,7 @@ def xanes_textout(
 
 
 @task
-def xanes_afterscan_plan(scanid):
+def xas_step_exporter(scanid):
     logger = get_run_logger()
 
     # Custom header list
@@ -339,7 +339,7 @@ def xanes_exporter(ref):
     # Redirect to correction function - or pass
     if scan_type == "XAS_STEP":
         logger.info("Starting xanes step-scan exporter.")
-        xanes_afterscan_plan(ref)
+        xas_step_exporter(ref)
         logger.info("Finished writing file with xanes step-scan exporter.")
     elif scan_type == "XAS_FLY":
         logger.info("Starting xanes fly-scan exporter.")
