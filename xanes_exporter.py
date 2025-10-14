@@ -233,6 +233,7 @@ def xanes_afterscan_plan(scanid):
 
 @task
 def xas_fly_exporter(uid):
+    logger = get_run_logger()
     # Get a scan header
     hdr = tiled_client_raw[uid]
     start_doc = hdr.start
@@ -310,7 +311,6 @@ def xas_fly_exporter(uid):
         df = pd.DataFrame()
         keys = [k for k in tbl.keys()[:] if "time" not in k]
         for k in keys:
-            print(f"{k=}")
             if "channel" in k:
                 # We will process later
                 continue
