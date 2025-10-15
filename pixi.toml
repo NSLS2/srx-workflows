@@ -10,7 +10,7 @@ python = "<3.13"
 databroker = "*"
 xraylib = "*"
 scikit-beam = "*"
-black = ">=25.1.0,<26"
+pre-commit = ">=4.3.0,<5"
 
 [pypi-dependencies]
 pyxrf = { git = "https://github.com/NSLS2/pyxrf.git", rev="7b7d868" }

@@ -29,7 +29,7 @@ def xanes_textout(
     userheader: a dictionary defined by user to put into the header
     column: a list of items that exist in the event data to be put into
             the column data
-    output: print all header fileds. if output = False, only print the ones
+    output: print all header fields. if output = False, only print the ones
             that were able to be written
             default = True
 
@@ -163,9 +163,7 @@ def xas_step_exporter(scanid):
             xs_channels = h["primary"].descriptors[0]["object_keys"]["xs"]
             for xs_channel in xs_channels:
                 logger.info(f"Current xs_channel: {xs_channel}")
-                if (
-                    "mca" + roi_name in xs_channel and "total_rbv" in xs_channel
-                ):  # noqa: E501
+                if "mca" + roi_name in xs_channel and "total_rbv" in xs_channel:  # noqa: E501
                     roi_key.append(xs_channel)
 
             columnitem.extend(roi_key)
@@ -204,9 +202,7 @@ def xas_step_exporter(scanid):
             roi_name = "roi{:02}".format(i)
             roi_key = []
             for xs_channel in xs_channels:
-                if (
-                    "mca" + roi_name in xs_channel and "total_rbv" in xs_channel
-                ):  # noqa: E501
+                if "mca" + roi_name in xs_channel and "total_rbv" in xs_channel:  # noqa: E501
                     roi_key.append(xs_channel)
             roisum = sum(datatable[roi_key].to_array()).to_series()
             roisum = roisum.rename_axis("seq_num").rename(lambda x: x + 1)
@@ -277,12 +273,12 @@ def xas_fly_exporter(uid):
 
     # Static header
     staticheader = (
-        f"# XDI/1.0 MX/2.0\n"
+        "# XDI/1.0 MX/2.0\n"
         + f"# Beamline.name: {hdr.start['beamline_id']}\n"
-        + f"# Facility.name: NSLS-II\n"
+        + "# Facility.name: NSLS-II\n"
         + f"# Facility.ring_current: {ring_current_start}\n"
         + f"# IVU.harmonic: {hdr.start['scan']['harmonic']}\n"
-        + f"# Mono.name: Si 111\n"
+        + "# Mono.name: Si 111\n"
         + f"# Scan.start.uid: {hdr.start['uid']}\n"
         + f"# Scan.start.scanid: {hdr.start['scan_id']}\n"
         + f"# Scan.start.time: {hdr.start['time']}\n"
@@ -290,7 +286,7 @@ def xas_fly_exporter(uid):
         + f"# Scan.ROI.name: {roi_name}\n"
         + f"# Scan.ROI.number: {roi_num}\n"
         + f"# Scan.ROI.range: {f'[{E_min}:{E_max}]'}\n"
-        + f"# \n"
+        + "# \n"
     )
 
     for stream in sorted(scan_streams):
@@ -319,7 +315,7 @@ def xas_fly_exporter(uid):
         # Prepare for export
         col_names = [df.index.name] + list(df.columns)
         for i, col in enumerate(col_names):
-            staticheader += f"# Column {i+1:02}: {col}\n"
+            staticheader += f"# Column {i + 1:02}: {col}\n"
         staticheader += "# \n# "
 
         # Export data to file
