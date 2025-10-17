@@ -1,27 +1,30 @@
 from prefect import flow, task, get_run_logger
 from prefect.blocks.system import Secret
 
-CATALOG_NAME = "srx"
-
 import glob
 import os
 import stat
+import pyxrf
+import dask
+from pyxrf.api import make_hdf
 
 from tiled.client import from_profile
 # from pyxrf.api import make_hdf
+
+CATALOG_NAME = "srx"
 
 api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
 tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
 tiled_client_raw = tiled_client["raw"]
 
+
 @task
 def export_xrf_hdf5(scanid):
     logger = get_run_logger()
-    import pyxrf
+
     logger.info(f"{pyxrf.__file__ = }")
-    import dask
+
     logger.info(f"{dask.__file__ = }")
-    from pyxrf.api import make_hdf
 
     # Load header for our scan
     h = tiled_client_raw[scanid]
@@ -35,23 +38,32 @@ def export_xrf_hdf5(scanid):
     # Check if this is an alignment scan
     # scan_input array consists of [startx, stopx, number pts x, start y, stop y, num pts y, dwell]
     idx_NUM_PTS_Y = 5
-    if h.start["scan"]["type"] == "XRF_FLY" and h.start["scan"]["scan_input"][idx_NUM_PTS_Y] == 1:
+    if (
+        h.start["scan"]["type"] == "XRF_FLY"
+        and h.start["scan"]["scan_input"][idx_NUM_PTS_Y] == 1
+    ):
         logger.info(
             "This is likely an alignment scan. Not running pyxrf.api.make_hdf on this document."
         )
         return
 
     if "SRX Beamline Commissioning".lower() in h.start["proposal"]["title"].lower():
-        working_dir = f"/nsls2/data/srx/proposals/commissioning/{h.start['data_session']}"
+        working_dir = (
+            f"/nsls2/data/srx/proposals/commissioning/{h.start['data_session']}"
+        )
     else:
-        working_dir = f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}"  # noqa: E501
+        working_dir = (
+            f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}"  # noqa: E501
+        )
 
     os.umask(0o007)  # Read/write access for user and group only
 
     prefix = "autorun_scan2D_"
 
     logger.info(f"{working_dir =}")
-    os.environ["TILED_API_KEY"] = api_key  # pyxrf assumes Tiled API key as an environment variable
+    os.environ["TILED_API_KEY"] = (
+        api_key  # pyxrf assumes Tiled API key as an environment variable
+    )
     make_hdf(scanid, wd=working_dir, prefix=prefix, catalog_name=CATALOG_NAME)
 
     # chmod g+w for created file(s)
