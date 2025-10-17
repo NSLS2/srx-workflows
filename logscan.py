@@ -67,7 +67,7 @@ def logscan_detailed(scanid):
             if "plan_name" in h.start:
                 out_str += f"\t{h.start['plan_name']}"
             else:
-                out_str += f"\tunknown scan"
+                out_str += "\tunknown scan"
         out_str += "\n"
 
         # Write to file

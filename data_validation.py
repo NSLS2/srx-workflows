@@ -25,5 +25,4 @@ def read_all_streams(uid, beamline_acronym):
 
 @flow
 def data_validation(uid):
-    read_all_streams(uid, beamline_acronym='srx')
-
+    read_all_streams(uid, beamline_acronym="srx")
