@@ -1,14 +1,17 @@
 from prefect import flow, task, get_run_logger
 from prefect.blocks.system import Secret
 
-CATALOG_NAME = "srx"
-
 import glob
 import os
 import stat
+import pyxrf
+import dask
+from pyxrf.api import make_hdf
 
 from tiled.client import from_profile
 # from pyxrf.api import make_hdf
+
+CATALOG_NAME = "srx"
 
 api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
 tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
@@ -18,13 +21,10 @@ tiled_client_raw = tiled_client["raw"]
 @task
 def export_xrf_hdf5(scanid):
     logger = get_run_logger()
-    import pyxrf
 
     logger.info(f"{pyxrf.__file__ = }")
-    import dask
 
     logger.info(f"{dask.__file__ = }")
-    from pyxrf.api import make_hdf
 
     # Load header for our scan
     h = tiled_client_raw[scanid]
