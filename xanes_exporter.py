@@ -308,7 +308,8 @@ def xas_fly_exporter(uid):
 
         ch_names = [ch for ch in keys if "channel" in ch]
         for ch in ch_names:
-            df[ch] = np.sum(tbl[ch].read()[:, E_min:E_max], axis=-1)
+            ch_data = np.squeeze(tbl[ch].read())
+            df[ch] = np.sum(ch_data[:, E_min:E_max], axis=1)
             df.rename(columns={ch: ch.split("_")[-1]}, inplace=True)
         df["ch_sum"] = df[[ch for ch in df.keys() if "channel" in ch]].sum(axis=1)
 
