@@ -302,7 +302,7 @@ def xas_fly_exporter(uid):
             if "channel" in k:
                 # We will process later
                 continue
-            df[k] = tbl[k].read()
+            df[k] = np.squeeze(tbl[k].read())
 
         df.set_index("energy", drop=True, inplace=True)
 
