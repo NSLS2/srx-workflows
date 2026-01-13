@@ -11,6 +11,7 @@ bluesky-tiled-plugins = ">=2"
 xraylib = "*"
 scikit-beam = "*"
 pre-commit = ">=4.3.0,<5"
+databroker = "*"
 
 [pypi-dependencies]
 pyxrf = { git = "https://github.com/NSLS2/pyxrf.git", rev="7b7d868" }
