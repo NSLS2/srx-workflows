@@ -9,6 +9,7 @@ import dask
 from pyxrf.api import make_hdf
 
 from tiled.client import from_profile
+
 # from pyxrf.api import make_hdf
 
 CATALOG_NAME = "srx"
@@ -76,9 +77,7 @@ def export_xrf_hdf5(scanid):
             f"/nsls2/data/srx/proposals/commissioning/{h.start['data_session']}"
         )
     else:
-        working_dir = (
-            f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}"  # noqa: E501
-        )
+        working_dir = f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}"  # noqa: E501
 
     os.umask(0o007)  # Read/write access for user and group only
 
