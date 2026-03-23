@@ -35,6 +35,30 @@ def export_xrf_hdf5(scanid):
         )
         return
 
+    # Check if the motors are support in make_hdf
+    supported_motors = [
+        "nano_stage_x",
+        "nano_stage_y",
+        "nano_stage_z",
+        "nano_stage_sx",
+        "nano_stage_sy",
+        "nano_stage_sz",
+        "nano_stage_topx",
+        "nano_stage_topz",
+    ]
+    fast_axis = h.start["scan"]["fast_axis"]["motor_name"]
+    slow_axis = h.start["scan"]["slow_axis"]["motor_name"]
+    if fast_axis not in supported_motors:
+        logger.info(
+            f"{fast_axis} motor is not supported. Not running pyxrf.api.make_hdf on this document."
+        )
+        return
+    if slow_axis not in supported_motors:
+        logger.info(
+            f"{slow_axis} motor is not supported. Not running pyxrf.api.make_hdf on this document."
+        )
+        return
+
     # Check if this is an alignment scan
     # scan_input array consists of [startx, stopx, number pts x, start y, stop y, num pts y, dwell]
     idx_NUM_PTS_Y = 5
