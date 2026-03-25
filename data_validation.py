@@ -1,21 +1,30 @@
 from prefect import task, flow, get_run_logger
 import time as ttime
-from tiled.client import from_profile
-from prefect.blocks.system import Secret
+from tiled.client import from_uri
+
+
+@task
+def get_run(uid, api_key=None):
+    tiled_client = from_uri("https://tiled.nsls2.bnl.gov", api_key=api_key)
+    run = tiled_client["srx/raw"][uid]
+    return run
+
+
+@task
+def read_stream(run, stream):
+    return run[stream].read()
 
 
 @task(retries=2, retry_delay_seconds=10)
-def read_all_streams(uid, beamline_acronym):
-    api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-    tiled_client = from_profile("nsls2", api_key=api_key)
+def read_all_streams(uid, api_key=None):
     logger = get_run_logger()
-    run = tiled_client[beamline_acronym]["raw"][uid]
+    run = get_run(uid, api_key=api_key)
     logger.info(f"Validating uid {run.start['uid']}")
     start_time = ttime.monotonic()
     for stream in run:
         logger.info(f"{stream}:")
         stream_start_time = ttime.monotonic()
-        stream_data = run[stream].read()
+        stream_data = read_stream(run, stream)
         stream_elapsed_time = ttime.monotonic() - stream_start_time
         logger.info(f"{stream} elapsed_time = {stream_elapsed_time}")
         logger.info(f"{stream} nbytes = {stream_data.nbytes:_}")
@@ -24,5 +33,5 @@ def read_all_streams(uid, beamline_acronym):
 
 
 @flow
-def data_validation(uid):
-    read_all_streams(uid, beamline_acronym="srx")
+def data_validation(uid, api_key=None):
+    read_all_streams(uid, api_key=api_key)

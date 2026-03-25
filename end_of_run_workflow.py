@@ -9,7 +9,7 @@ from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
 from logscan import logscan
 
-from tiled.client import from_profile
+from data_validation import get_run
 
 CATALOG_NAME = "srx"
 
@@ -36,9 +36,8 @@ def slack(func):
 
         # Get the scan_id.
         api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-        tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
-        tiled_client_raw = tiled_client["raw"]
-        scan_id = tiled_client_raw[uid].start["scan_id"]
+        tiled_client = get_run(uid, api_key=api_key)
+        scan_id = tiled_client(uid, api_key=api_key).start["scan_id"]
 
         # Send a message to mon-bluesky if bluesky-run failed.
         if stop_doc.get("exit_status") == "fail":
@@ -74,11 +73,11 @@ def log_completion():
 
 @flow
 @slack
-def end_of_run_workflow(stop_doc):
+def end_of_run_workflow(stop_doc, api_key=None):
     uid = stop_doc["run_start"]
 
-    # data_validation(uid, return_state=True)
-    xanes_exporter(uid)
-    xrf_hdf5_exporter(uid)
-    logscan(uid)
+    # data_validation(uid, return_state=True, api_key=api)
+    xanes_exporter(uid, api_key=api_key)
+    xrf_hdf5_exporter(uid, api_key=api_key)
+    logscan(uid, api_key=api_key)
     log_completion()

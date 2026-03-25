@@ -3,6 +3,8 @@ from prefect import flow, task, get_run_logger
 from prefect.blocks.system import Secret
 from tiled.client import from_profile
 
+from data_validation import get_run
+
 
 api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
 tiled_client = from_profile("nsls2", api_key=api_key)["srx"]
@@ -21,10 +23,10 @@ def find_scanid(logfile_path, scanid):
 
 
 @task
-def logscan_detailed(scanid):
+def logscan_detailed(scanid, api_key=None):
     logger = get_run_logger()
 
-    h = tiled_client_raw[scanid]
+    h = get_run(scanid, api_key=api_key)
 
     if (
         "Beamline Commissioning (beamline staff only)".lower()
@@ -77,7 +79,7 @@ def logscan_detailed(scanid):
 
 
 @flow(log_prints=True)
-def logscan(ref):
+def logscan(ref, api_key=None):
     logger = get_run_logger()
     logger.info("Start writing logfile...")
     logscan_detailed(ref)
