@@ -16,7 +16,7 @@ def find_scanid(logfile_path, scanid):
 
 
 @task
-def logscan_detailed(scanid, api_key=None, dry_run=None):
+def logscan_detailed(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
 
     h = get_run(scanid, api_key=api_key)
@@ -75,7 +75,7 @@ def logscan_detailed(scanid, api_key=None, dry_run=None):
 
 
 @flow(log_prints=True)
-def logscan(ref, api_key=None, dry_run=None):
+def logscan(ref, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("Start writing logfile...")
     logscan_detailed(ref, dry_run=dry_run)
