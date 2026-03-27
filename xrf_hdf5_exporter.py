@@ -15,7 +15,7 @@ CATALOG_NAME = "srx"
 
 
 @task
-def export_xrf_hdf5(scanid, api_key=None):
+def export_xrf_hdf5(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
 
     logger.info(f"{pyxrf.__file__ = }")
@@ -60,17 +60,20 @@ def export_xrf_hdf5(scanid, api_key=None):
     os.environ["TILED_API_KEY"] = (
         api_key  # pyxrf assumes Tiled API key as an environment variable
     )
-    make_hdf(scanid, wd=working_dir, prefix=prefix, catalog_name=CATALOG_NAME)
+    if dry_run:
+        logger.info("Dry run: not creating HDF5 file using PyXRF")
+    else:
+        make_hdf(scanid, wd=working_dir, prefix=prefix, catalog_name=CATALOG_NAME)
 
-    # chmod g+w for created file(s)
-    # context: https://nsls2.slack.com/archives/C04UUSG88VB/p1718911163624149
-    for file in glob.glob(f"{working_dir}/{prefix}{scanid}*.h5"):
-        os.chmod(file, os.stat(file).st_mode | stat.S_IWGRP)
+        # chmod g+w for created file(s)
+        # context: https://nsls2.slack.com/archives/C04UUSG88VB/p1718911163624149
+        for file in glob.glob(f"{working_dir}/{prefix}{scanid}*.h5"):
+            os.chmod(file, os.stat(file).st_mode | stat.S_IWGRP)
 
 
 @flow(log_prints=True)
-def xrf_hdf5_exporter(scanid, api_key=None):
+def xrf_hdf5_exporter(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("Start writing file with xrf_hdf5 exporter...")
-    export_xrf_hdf5(scanid, api_key=api_key)
+    export_xrf_hdf5(scanid, api_key=api_key, dry_run=dry_run)
     logger.info("Finish writing file with xrf_hdf5 exporter.")
