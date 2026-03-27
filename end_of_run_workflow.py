@@ -36,8 +36,8 @@ def slack(func):
 
         # Get the scan_id.
         api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-        tiled_client = get_run(uid, api_key=api_key)
-        scan_id = tiled_client(uid, api_key=api_key).start["scan_id"]
+        run = get_run(uid, api_key=api_key)
+        scan_id = run.start["scan_id"]
 
         # Send a message to mon-bluesky if bluesky-run failed.
         if stop_doc.get("exit_status") == "fail":
