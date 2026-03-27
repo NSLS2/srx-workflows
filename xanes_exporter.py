@@ -115,7 +115,7 @@ def xanes_textout(
 
 
 @task
-def xas_step_exporter(scanid, api_key=None):
+def xas_step_exporter(scanid, api_key=None, dry_run=None):
     logger = get_run_logger()
 
     # Custom header list
@@ -210,20 +210,23 @@ def xas_step_exporter(scanid, api_key=None):
     #         usercolumnitem['If-{:02}'.format(i)] = roisum
     #         usercolumnitem['If-{:02}'.format(i)].round(0)
 
-    xanes_textout(
-        scanid=scanid,
-        header=headeritem,
-        userheader=userheaderitem,
-        column=columnitem,
-        usercolumn=usercolumnitem,
-        usercolumnname=usercolumnitem.keys(),
-        output=False,
-        api_key=api_key,
-    )
+    if dry_run:
+        logger.info(f"Dry run: Not exporting xanes")
+    else:
+        xanes_textout(
+            scanid=scanid,
+            header=headeritem,
+            userheader=userheaderitem,
+            column=columnitem,
+            usercolumn=usercolumnitem,
+            usercolumnname=usercolumnitem.keys(),
+            output=False,
+            api_key=api_key,
+        )
 
 
 @task
-def xas_fly_exporter(uid, api_key=None):
+def xas_fly_exporter(uid, api_key=None, dry_run=dry_run):
     logger = get_run_logger()
     # Get a scan header
     hdr = get_run(uid, api_key=api_key)
@@ -315,13 +318,23 @@ def xas_fly_exporter(uid, api_key=None):
         staticheader += "# \n# "
 
         # Export data to file
-        with open(fname, "w") as f:
-            f.write(staticheader)
-        df.to_csv(fname, float_format="%.3f", sep=" ", mode="a")
+        if dry_run:
+            logger.info("Dry run: xas fly exporter")
+            if len(df) >=2:
+                logger.info("Dry run: first and last row: {pd.concat([df.head(1), df.tail(1)])}")
+            elif len(df) == 1:
+                logger.info("Dry run: row: {df}")
+            else:
+                logger.info("Dry run: (no data)")
+        else:
+            with open(fname, "w") as f:
+                f.write(staticheader)
+            df.to_csv(fname, float_format="%.3f", sep=" ", mode="a")
+
 
 
 @flow(log_prints=True)
-def xanes_exporter(ref, api_key=None):
+def xanes_exporter(ref, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("Start writing file with xanes_exporter...")
 
@@ -333,11 +346,11 @@ def xanes_exporter(ref, api_key=None):
     # Redirect to correction function - or pass
     if scan_type == "XAS_STEP":
         logger.info("Starting xanes step-scan exporter.")
-        xas_step_exporter(ref, api_key=api_key)
+        xas_step_exporter(ref, api_key=api_key, dry_run=dry_run)
         logger.info("Finished writing file with xanes step-scan exporter.")
     elif scan_type == "XAS_FLY":
         logger.info("Starting xanes fly-scan exporter.")
-        xas_fly_exporter(ref, api_key=api_key)
+        xas_fly_exporter(ref, api_key=api_key, dry_run=dry_run)
         logger.info("Finished writing file with xanes fly-scan exporter.")
     else:
         logger.info(f"xanes exporter for {scan_type=} not available")
