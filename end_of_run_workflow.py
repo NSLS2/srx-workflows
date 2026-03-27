@@ -2,7 +2,6 @@ import traceback
 
 from prefect import task, flow, get_run_logger
 from prefect.blocks.notifications import SlackWebhook
-from prefect.blocks.system import Secret
 from prefect.context import FlowRunContext
 
 from xanes_exporter import xanes_exporter
@@ -35,7 +34,6 @@ def slack(func):
         uid = stop_doc["run_start"]
 
         # Get the scan_id.
-        api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
         run = get_run(uid, api_key=api_key)
         scan_id = run.start["scan_id"]
 
