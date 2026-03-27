@@ -16,7 +16,7 @@ def find_scanid(logfile_path, scanid):
 
 
 @task
-def logscan_detailed(scanid, api_key=None):
+def logscan_detailed(scanid, api_key=None, dry_run=None):
     logger = get_run_logger()
 
     h = get_run(scanid, api_key=api_key)
@@ -66,14 +66,17 @@ def logscan_detailed(scanid, api_key=None):
         out_str += "\n"
 
         # Write to file
-        with open(logfile_path, "a") as userlogf:
-            userlogf.write(out_str)
-            logger.info(f"Added {h.start['scan_id']} to the logs")
+        if dry_run:
+            logger.info(f"Dry run: scan_id: {h.start['scan_id']} output: {out_str}")
+        else:
+            with open(logfile_path, "a") as userlogf:
+                userlogf.write(out_str)
+                logger.info(f"Added {h.start['scan_id']} to the logs")
 
 
 @flow(log_prints=True)
-def logscan(ref, api_key=None):
+def logscan(ref, api_key=None, dry_run=None):
     logger = get_run_logger()
     logger.info("Start writing logfile...")
-    logscan_detailed(ref)
+    logscan_detailed(ref, dry_run=dry_run)
     logger.info("Finish writing logfile.")
