@@ -115,7 +115,7 @@ def xanes_textout(
 
 
 @task
-def xas_step_exporter(scanid, api_key=None, dry_run=None):
+def xas_step_exporter(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
 
     # Custom header list
@@ -211,7 +211,7 @@ def xas_step_exporter(scanid, api_key=None, dry_run=None):
     #         usercolumnitem['If-{:02}'.format(i)].round(0)
 
     if dry_run:
-        logger.info(f"Dry run: Not exporting xanes")
+        logger.info("Dry run: Not exporting xanes")
     else:
         xanes_textout(
             scanid=scanid,
@@ -226,7 +226,7 @@ def xas_step_exporter(scanid, api_key=None, dry_run=None):
 
 
 @task
-def xas_fly_exporter(uid, api_key=None, dry_run=dry_run):
+def xas_fly_exporter(uid, api_key=None, dry_run=False):
     logger = get_run_logger()
     # Get a scan header
     hdr = get_run(uid, api_key=api_key)
@@ -320,8 +320,10 @@ def xas_fly_exporter(uid, api_key=None, dry_run=dry_run):
         # Export data to file
         if dry_run:
             logger.info("Dry run: xas fly exporter")
-            if len(df) >=2:
-                logger.info("Dry run: first and last row: {pd.concat([df.head(1), df.tail(1)])}")
+            if len(df) >= 2:
+                logger.info(
+                    "Dry run: first and last row: {pd.concat([df.head(1), df.tail(1)])}"
+                )
             elif len(df) == 1:
                 logger.info("Dry run: row: {df}")
             else:
@@ -330,7 +332,6 @@ def xas_fly_exporter(uid, api_key=None, dry_run=dry_run):
             with open(fname, "w") as f:
                 f.write(staticheader)
             df.to_csv(fname, float_format="%.3f", sep=" ", mode="a")
-
 
 
 @flow(log_prints=True)
