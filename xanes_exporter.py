@@ -218,6 +218,7 @@ def xas_step_exporter(scanid, api_key=None):
         usercolumn=usercolumnitem,
         usercolumnname=usercolumnitem.keys(),
         output=False,
+        api_key=api_key,
     )
 
 
@@ -332,11 +333,11 @@ def xanes_exporter(ref, api_key=None):
     # Redirect to correction function - or pass
     if scan_type == "XAS_STEP":
         logger.info("Starting xanes step-scan exporter.")
-        xas_step_exporter(ref)
+        xas_step_exporter(ref, api_key=api_key)
         logger.info("Finished writing file with xanes step-scan exporter.")
     elif scan_type == "XAS_FLY":
         logger.info("Starting xanes fly-scan exporter.")
-        xas_fly_exporter(ref)
+        xas_fly_exporter(ref, api_key=api_key)
         logger.info("Finished writing file with xanes fly-scan exporter.")
     else:
         logger.info(f"xanes exporter for {scan_type=} not available")
