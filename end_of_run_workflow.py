@@ -82,7 +82,7 @@ def log_completion():
 def end_of_run_workflow(stop_doc, api_key=None, dry_run=False):
     uid = stop_doc["run_start"]
     if not api_key:
-        api_key = get_api_key_from_env(api_key=None)
+        api_key = get_api_key_from_env()
 
     # data_validation(uid, return_state=True, api_key=api)
     xanes_exporter(uid, api_key=api_key, dry_run=dry_run)
