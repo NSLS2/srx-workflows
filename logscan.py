@@ -78,5 +78,5 @@ def logscan_detailed(scanid, api_key=None, dry_run=False):
 def logscan(ref, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("Start writing logfile...")
-    logscan_detailed(ref, dry_run=dry_run)
+    logscan_detailed(ref, api_key=api_key, dry_run=dry_run)
     logger.info("Finish writing logfile.")
