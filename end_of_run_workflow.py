@@ -14,7 +14,7 @@ from data_validation import get_run
 CATALOG_NAME = "srx"
 
 
-def get_api_key_from_env(api_key=None):
+def get_api_key_from_env():
     with open("/srv/container.secret", "r") as secrets:
         load_dotenv(stream=secrets)
     api_key = os.environ["TILED_API_KEY"]
