@@ -1,5 +1,4 @@
 from prefect import flow, task, get_run_logger
-from prefect.blocks.system import Secret
 
 import glob
 import os
@@ -8,18 +7,15 @@ import pyxrf
 import dask
 from pyxrf.api import make_hdf
 
-from tiled.client import from_profile
+from data_validation import get_run
+
 # from pyxrf.api import make_hdf
 
 CATALOG_NAME = "srx"
 
-api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
-tiled_client_raw = tiled_client["raw"]
-
 
 @task
-def export_xrf_hdf5(scanid):
+def export_xrf_hdf5(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
 
     logger.info(f"{pyxrf.__file__ = }")
@@ -27,7 +23,7 @@ def export_xrf_hdf5(scanid):
     logger.info(f"{dask.__file__ = }")
 
     # Load header for our scan
-    h = tiled_client_raw[scanid]
+    h = get_run(scanid, api_key=api_key)
 
     if h.start["scan"]["type"] not in ["XRF_FLY", "XRF_STEP"]:
         logger.info(
@@ -64,17 +60,20 @@ def export_xrf_hdf5(scanid):
     os.environ["TILED_API_KEY"] = (
         api_key  # pyxrf assumes Tiled API key as an environment variable
     )
-    make_hdf(scanid, wd=working_dir, prefix=prefix, catalog_name=CATALOG_NAME)
+    if dry_run:
+        logger.info("Dry run: not creating HDF5 file using PyXRF")
+    else:
+        make_hdf(scanid, wd=working_dir, prefix=prefix, catalog_name=CATALOG_NAME)
 
-    # chmod g+w for created file(s)
-    # context: https://nsls2.slack.com/archives/C04UUSG88VB/p1718911163624149
-    for file in glob.glob(f"{working_dir}/{prefix}{scanid}*.h5"):
-        os.chmod(file, os.stat(file).st_mode | stat.S_IWGRP)
+        # chmod g+w for created file(s)
+        # context: https://nsls2.slack.com/archives/C04UUSG88VB/p1718911163624149
+        for file in glob.glob(f"{working_dir}/{prefix}{scanid}*.h5"):
+            os.chmod(file, os.stat(file).st_mode | stat.S_IWGRP)
 
 
 @flow(log_prints=True)
-def xrf_hdf5_exporter(scanid):
+def xrf_hdf5_exporter(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("Start writing file with xrf_hdf5 exporter...")
-    export_xrf_hdf5(scanid)
+    export_xrf_hdf5(scanid, api_key=api_key, dry_run=dry_run)
     logger.info("Finish writing file with xrf_hdf5 exporter.")

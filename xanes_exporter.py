@@ -1,16 +1,9 @@
 from prefect import flow, task, get_run_logger
-from prefect.blocks.system import Secret
-from tiled.client import from_profile
-
+from data_validation import get_run
 import time as ttime
 import numpy as np
 import xraylib as xrl
 import pandas as pd
-
-
-api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-tiled_client = from_profile("nsls2", api_key=api_key)["srx"]
-tiled_client_raw = tiled_client["raw"]
 
 
 def xanes_textout(
@@ -21,6 +14,7 @@ def xanes_textout(
     usercolumn={},
     usercolumnname=[],
     output=True,
+    api_key=None,
 ):
     """
     scan: can be scan_id (integer) or uid (string). default=-1 (last scan run)
@@ -35,7 +29,7 @@ def xanes_textout(
 
     """
 
-    h = tiled_client_raw[scanid]
+    h = get_run(scanid, api_key=api_key)
     if (
         "Beamline Commissioning (beamline staff only)".lower()
         in h.start["proposal"]["type"].lower()
@@ -121,13 +115,13 @@ def xanes_textout(
 
 
 @task
-def xas_step_exporter(scanid):
+def xas_step_exporter(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
 
     # Custom header list
     headeritem = []
     # Load header for our scan
-    h = tiled_client_raw[scanid]
+    h = get_run(scanid, api_key=api_key)
 
     if h.start["scan"].get("type") != "XAS_STEP":
         logger.info("Incorrect document type. Not running exporter on this document.")
@@ -216,22 +210,26 @@ def xas_step_exporter(scanid):
     #         usercolumnitem['If-{:02}'.format(i)] = roisum
     #         usercolumnitem['If-{:02}'.format(i)].round(0)
 
-    xanes_textout(
-        scanid=scanid,
-        header=headeritem,
-        userheader=userheaderitem,
-        column=columnitem,
-        usercolumn=usercolumnitem,
-        usercolumnname=usercolumnitem.keys(),
-        output=False,
-    )
+    if dry_run:
+        logger.info("Dry run: Not exporting xanes")
+    else:
+        xanes_textout(
+            scanid=scanid,
+            header=headeritem,
+            userheader=userheaderitem,
+            column=columnitem,
+            usercolumn=usercolumnitem,
+            usercolumnname=usercolumnitem.keys(),
+            output=False,
+            api_key=api_key,
+        )
 
 
 @task
-def xas_fly_exporter(uid):
+def xas_fly_exporter(uid, api_key=None, dry_run=False):
     logger = get_run_logger()
     # Get a scan header
-    hdr = tiled_client_raw[uid]
+    hdr = get_run(uid, api_key=api_key)
     start_doc = hdr.start
 
     # Get proposal directory location
@@ -320,27 +318,40 @@ def xas_fly_exporter(uid):
         staticheader += "# \n# "
 
         # Export data to file
-        with open(fname, "w") as f:
-            f.write(staticheader)
-        df.to_csv(fname, float_format="%.3f", sep=" ", mode="a")
+        if dry_run:
+            logger.info("Dry run: xas fly exporter")
+            if len(df) >= 2:
+                logger.info(
+                    "Dry run: first and last row: {pd.concat([df.head(1), df.tail(1)])}"
+                )
+            elif len(df) == 1:
+                logger.info("Dry run: row: {df}")
+            else:
+                logger.info("Dry run: (no data)")
+        else:
+            with open(fname, "w") as f:
+                f.write(staticheader)
+            df.to_csv(fname, float_format="%.3f", sep=" ", mode="a")
 
 
 @flow(log_prints=True)
-def xanes_exporter(ref):
+def xanes_exporter(ref, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("Start writing file with xanes_exporter...")
 
     # Get scan type
-    scan_type = tiled_client_raw[ref].start.get("scan", {}).get("type", "unknown")
+    scan_type = (
+        get_run(ref, api_key=api_key).start.get("scan", {}).get("type", "unknown")
+    )
 
     # Redirect to correction function - or pass
     if scan_type == "XAS_STEP":
         logger.info("Starting xanes step-scan exporter.")
-        xas_step_exporter(ref)
+        xas_step_exporter(ref, api_key=api_key, dry_run=dry_run)
         logger.info("Finished writing file with xanes step-scan exporter.")
     elif scan_type == "XAS_FLY":
         logger.info("Starting xanes fly-scan exporter.")
-        xas_fly_exporter(ref)
+        xas_fly_exporter(ref, api_key=api_key, dry_run=dry_run)
         logger.info("Finished writing file with xanes fly-scan exporter.")
     else:
         logger.info(f"xanes exporter for {scan_type=} not available")

@@ -1,12 +1,7 @@
 from pathlib import Path
 from prefect import flow, task, get_run_logger
-from prefect.blocks.system import Secret
-from tiled.client import from_profile
 
-
-api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-tiled_client = from_profile("nsls2", api_key=api_key)["srx"]
-tiled_client_raw = tiled_client["raw"]
+from data_validation import get_run
 
 
 def find_scanid(logfile_path, scanid):
@@ -21,10 +16,10 @@ def find_scanid(logfile_path, scanid):
 
 
 @task
-def logscan_detailed(scanid):
+def logscan_detailed(scanid, api_key=None, dry_run=False):
     logger = get_run_logger()
 
-    h = tiled_client_raw[scanid]
+    h = get_run(scanid, api_key=api_key)
 
     if (
         "Beamline Commissioning (beamline staff only)".lower()
@@ -71,14 +66,17 @@ def logscan_detailed(scanid):
         out_str += "\n"
 
         # Write to file
-        with open(logfile_path, "a") as userlogf:
-            userlogf.write(out_str)
-            logger.info(f"Added {h.start['scan_id']} to the logs")
+        if dry_run:
+            logger.info(f"Dry run: scan_id: {h.start['scan_id']} output: {out_str}")
+        else:
+            with open(logfile_path, "a") as userlogf:
+                userlogf.write(out_str)
+                logger.info(f"Added {h.start['scan_id']} to the logs")
 
 
 @flow(log_prints=True)
-def logscan(ref):
+def logscan(ref, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("Start writing logfile...")
-    logscan_detailed(ref)
+    logscan_detailed(ref, api_key=api_key, dry_run=dry_run)
     logger.info("Finish writing logfile.")

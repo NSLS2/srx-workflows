@@ -2,16 +2,23 @@ import traceback
 
 from prefect import task, flow, get_run_logger
 from prefect.blocks.notifications import SlackWebhook
-from prefect.blocks.system import Secret
 from prefect.context import FlowRunContext
 
 from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
 from logscan import logscan
-
-from tiled.client import from_profile
+from dotenv import load_dotenv
+import os
+from data_validation import get_run
 
 CATALOG_NAME = "srx"
+
+
+def get_api_key_from_env():
+    with open("/srv/container.secret", "r") as secrets:
+        load_dotenv(stream=secrets)
+    api_key = os.environ["TILED_API_KEY"]
+    return api_key
 
 
 def slack(func):
@@ -24,7 +31,7 @@ def slack(func):
     the flow. To keep the naming of workflows consistent, the name of this inner function had to match the expected name.
     """
 
-    def end_of_run_workflow(stop_doc):
+    def end_of_run_workflow(stop_doc, api_key=None):
         flow_run_name = FlowRunContext.get().flow_run.dict().get("name")
 
         # Load slack credentials that are saved in Prefect.
@@ -35,10 +42,8 @@ def slack(func):
         uid = stop_doc["run_start"]
 
         # Get the scan_id.
-        api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-        tiled_client = from_profile("nsls2", api_key=api_key)[CATALOG_NAME]
-        tiled_client_raw = tiled_client["raw"]
-        scan_id = tiled_client_raw[uid].start["scan_id"]
+        run = get_run(uid, api_key=api_key)
+        scan_id = run.start["scan_id"]
 
         # Send a message to mon-bluesky if bluesky-run failed.
         if stop_doc.get("exit_status") == "fail":
@@ -74,11 +79,13 @@ def log_completion():
 
 @flow
 @slack
-def end_of_run_workflow(stop_doc):
+def end_of_run_workflow(stop_doc, api_key=None, dry_run=False):
     uid = stop_doc["run_start"]
+    if not api_key:
+        api_key = get_api_key_from_env()
 
-    # data_validation(uid, return_state=True)
-    xanes_exporter(uid)
-    xrf_hdf5_exporter(uid)
-    logscan(uid)
+    # data_validation(uid, return_state=True, api_key=api)
+    xanes_exporter(uid, api_key=api_key, dry_run=dry_run)
+    xrf_hdf5_exporter(uid, api_key=api_key, dry_run=dry_run)
+    logscan(uid, api_key=api_key, dry_run=dry_run)
     log_completion()
