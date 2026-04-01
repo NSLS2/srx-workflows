@@ -10,7 +10,7 @@ pull:
       directory: /repo
   - prefect.deployments.steps.git_clone:
       repository: https://github.com/nsls2/srx-workflows.git
-      branch: main
+      branch: fix-api-key
 
 deployments:
   - name: srx-end-of-run-workflow-docker
@@ -24,7 +24,7 @@ deployments:
     schedule: {}
     work_pool:
       job_variables:
-        image: ghcr.io/nsls2/srx-workflows:main
+        image: ghcr.io/nsls2/srx-workflows:fix-api-key
         image_pull_policy: Always
         network: slirp4netns
         volumes:
