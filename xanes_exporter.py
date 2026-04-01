@@ -4,6 +4,11 @@ import time as ttime
 import numpy as np
 import xraylib as xrl
 import pandas as pd
+from pathlib import Path
+
+
+def create_subdir(path):
+    Path(path).mkdir(parents=True, exist_ok=True)
 
 
 def xanes_textout(
@@ -30,13 +35,9 @@ def xanes_textout(
     """
 
     h = get_run(scanid, api_key=api_key)
-    if (
-        "Beamline Commissioning (beamline staff only)".lower()
-        in h.start["proposal"]["type"].lower()
-    ):
-        filepath = f"/nsls2/data/srx/proposals/commissioning/{h.start['data_session']}/scan_{h.start['scan_id']}_xanes.txt"
-    else:
-        filepath = f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}/scan_{h.start['scan_id']}_xanes.txt"  # noqa: E501
+    filepath = f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}/xas/scan_{h.start['scan_id']}_xanes.txt"  # noqa: E501
+
+    create_subdir(Path(filepath).parent)
 
     with open(filepath, "w") as f:
         dataset_client = h["primary"]["data"]
@@ -233,9 +234,10 @@ def xas_fly_exporter(uid, api_key=None, dry_run=False):
     start_doc = hdr.start
 
     # Get proposal directory location
-    is_commissioning = "beamline commissioning" in start_doc["proposal"]["type"].lower()
-    cycle = "commissioning" if is_commissioning else start_doc["cycle"]
-    root = f"/nsls2/data/srx/proposals/{cycle}/{start_doc['data_session']}/"
+    cycle = start_doc["cycle"]
+    root = f"/nsls2/data/srx/proposals/{cycle}/{start_doc['data_session']}/xas/"
+
+    create_subdir(root)
 
     # Identify scan streams
     scan_streams = [s for s in hdr if s != "baseline" and "monitor" not in s]
