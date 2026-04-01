@@ -41,6 +41,10 @@ def slack(func):
         # Get the uid.
         uid = stop_doc["run_start"]
 
+        # Get Tiled API key, if not set already
+        if not api_key:
+            api_key = get_api_key_from_env()
+
         # Get the scan_id.
         run = get_run(uid, api_key=api_key)
         scan_id = run.start["scan_id"]
@@ -81,8 +85,6 @@ def log_completion():
 @slack
 def end_of_run_workflow(stop_doc, api_key=None, dry_run=False):
     uid = stop_doc["run_start"]
-    if not api_key:
-        api_key = get_api_key_from_env()
 
     # data_validation(uid, return_state=True, api_key=api)
     xanes_exporter(uid, api_key=api_key, dry_run=dry_run)
