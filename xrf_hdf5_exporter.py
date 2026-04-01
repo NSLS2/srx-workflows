@@ -44,9 +44,7 @@ def export_xrf_hdf5(scanid, api_key=None, dry_run=False):
         )
         return
 
-    working_dir = (
-        f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}/xrfmaps"  # noqa: E501
-    )
+    working_dir = (f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}/xrfmaps")  # noqa: E501
 
     create_subdir(working_dir)
 
