@@ -1,44 +1,38 @@
-# from prefect import flow, task, get_run_logger
-# from prefect.blocks.system import Secret
-# from tiled.client import from_profile
-
+from prefect import flow, task, get_run_logger
 import time as ttime
 import numpy as np
 import os
 from skimage import io
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
+from data_validation import get_run
 
 
-# api_key = Secret.load("tiled-srx-api-key", _sync=True).get()
-# tiled_client = from_profile("nsls2", api_key=api_key)["srx"]
-# tiled_client_raw = tiled_client["raw"]
+@flow(log_prints=True)
+def vlm_image_exporter(ref, api_key=None):
+    logger = get_run_logger()
+    logger.info('')
+
+    scan_id = get_run(uid, api_key=api_key).start['scan_id']
+    logger.info(f'Looking for snapshots in scan {scan_id}.')
+
+    export_vlm_image(scan_id,
+                     overlay=True,
+                     raw_image=True,
+                     image_type='.tif')
+    logger.info(f'Finished exporting any snapshots in scan {scan_id}.')
 
 
-# @flow(log_prints=True)
-# def vlm_image_exporter(ref):
-#     logger = get_run_logger()
-#     logger.info('')
-
-#     scan_id = tiled_client_raw[uid].start['scan_id']
-#     logger.info(f'Looking for snapshots in scan {scan_id}.')
-
-#     export_vlm_image(scan_id,
-#                      overlay=True,
-#                      raw_image=True,
-#                      image_type='.tif')
-#     logger.info(f'Finished exporting any snapshots in scan {scan_id}.')
-
-
-# @task
+@task
 def export_vlm_image(scan_id,
                      wd=None,
                      overlay=True,
                      raw_image=True,
                      image_type='.tif',
-                     autoscale=True
+                     autoscale=True,
+                     api_key=None
                      ):
-    # logger = get_run_logger()
+    logger = get_run_logger()
 
     # Pseudocode
     # overlays == True
@@ -55,12 +49,12 @@ def export_vlm_image(scan_id,
     # Initial checks
     # Does scan exist
     scan_id = int(scan_id)    
-    h = tiled_client_raw[scan_id]
+    h = get_run(scan_id, api_key=api_key)
 
     # VLM image data acquired?
     if 'camera_snapshot' not in h:
         warn_str = f'No VLM images found for scan {scan_id}.'
-        # logger.info(warn_str)
+        logger.info(warn_str)
         return    
     
     # Logical combinations
