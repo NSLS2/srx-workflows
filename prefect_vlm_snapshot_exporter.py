@@ -74,7 +74,7 @@ def export_vlm_image(scan_id,
     if wd is None:
         proposal_id = h.start['proposal']['proposal_id']
         cycle = h.start['cycle']
-        wd = f'/nsls2/data3/srx/proposals/{cycle}/pass-{proposal_id}/'
+        wd = f'/nsls2/data/srx/proposals/{cycle}/pass-{proposal_id}/'
     
     # Create sub-folder
     wd = f'{wd}vlm_snapshots/'
