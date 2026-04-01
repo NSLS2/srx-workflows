@@ -8,6 +8,7 @@ import dask
 from pyxrf.api import make_hdf
 
 from data_validation import get_run
+from xanes_exporter import create_subdir
 
 # from pyxrf.api import make_hdf
 
@@ -43,14 +44,11 @@ def export_xrf_hdf5(scanid, api_key=None, dry_run=False):
         )
         return
 
-    if "SRX Beamline Commissioning".lower() in h.start["proposal"]["title"].lower():
-        working_dir = (
-            f"/nsls2/data/srx/proposals/commissioning/{h.start['data_session']}"
-        )
-    else:
-        working_dir = (
-            f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}"  # noqa: E501
-        )
+    working_dir = (
+        f"/nsls2/data/srx/proposals/{h.start['cycle']}/{h.start['data_session']}/xrfmaps"  # noqa: E501
+    )
+
+    create_subdir(working_dir)
 
     os.umask(0o007)  # Read/write access for user and group only
 
