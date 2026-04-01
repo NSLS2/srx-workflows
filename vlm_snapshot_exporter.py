@@ -10,7 +10,7 @@ def vlm_image_exporter(ref, api_key=None, dry_run=False):
     logger = get_run_logger()
     logger.info("")
 
-    scan_id = get_run(uid, api_key=api_key).start["scan_id"]
+    scan_id = get_run(ref, api_key=api_key).start["scan_id"]
     logger.info(f"Looking for snapshots in scan {scan_id}.")
 
     export_vlm_image(
