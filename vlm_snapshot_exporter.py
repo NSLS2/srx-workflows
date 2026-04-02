@@ -14,7 +14,7 @@ def vlm_image_exporter(ref, api_key=None, dry_run=False):
     logger.info(f"Looking for snapshots in scan {scan_id}.")
 
     export_vlm_image(
-        scan_id, overlay=True, raw_image=True, api_key=api_key, dry_run=dry_run
+        scan_id, api_key=api_key, dry_run=dry_run
     )
     logger.info(f"Finished exporting any snapshots in scan {scan_id}.")
 
@@ -22,26 +22,10 @@ def vlm_image_exporter(ref, api_key=None, dry_run=False):
 @task
 def export_vlm_image(
     scan_id,
-    wd=None,
-    overlay=True,
-    raw_image=True,
-    autoscale=True,
     api_key=None,
     dry_run=False,
 ):
     logger = get_run_logger()
-
-    # Pseudocode
-    # overlays == True
-    #       raw_images == True:
-    #           Saves both raw images and overlays
-    #       raw_images == False:
-    #           Saves only overlaid images
-    # overlays == False
-    #       raw_images == True:
-    #           Saves only raw images
-    #       raw_images == False:
-    #           raises RuntimeError
 
     # Initial checks
     # Does scan exist
@@ -54,10 +38,9 @@ def export_vlm_image(
         logger.info(warn_str)
         return
 
-    if wd is None:
-        proposal_id = h.start["proposal"]["proposal_id"]
-        cycle = h.start["cycle"]
-        wd = f"/nsls2/data/srx/proposals/{cycle}/pass-{proposal_id}/"
+    proposal_id = h.start["proposal"]["proposal_id"]
+    cycle = h.start["cycle"]
+    wd = f"/nsls2/data/srx/proposals/{cycle}/pass-{proposal_id}/"
 
     # Create sub-folder
     wd = f"{wd}vlm_snapshots/"
