@@ -6,6 +6,7 @@ from prefect.context import FlowRunContext
 
 from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
+from vlm_snapshot_exporter import vlm_image_exporter
 from logscan import logscan
 from dotenv import load_dotenv
 import os
@@ -89,5 +90,6 @@ def end_of_run_workflow(stop_doc, api_key=None, dry_run=False):
     # data_validation(uid, return_state=True, api_key=api)
     xanes_exporter(uid, api_key=api_key, dry_run=dry_run)
     xrf_hdf5_exporter(uid, api_key=api_key, dry_run=dry_run)
+    vlm_image_exporter(uid, api_key=api_key)
     logscan(uid, api_key=api_key, dry_run=dry_run)
     log_completion()
