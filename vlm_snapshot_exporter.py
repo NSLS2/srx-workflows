@@ -74,7 +74,7 @@ def export_vlm_image(
         image[image > 1] = 1
 
         # Return raw png
-        image = Image.fromArray((image * 65535).astype(np.uint16))
+        image = Image.fromarray((image * 65535).astype(np.uint16))
         filename = os.path.join(wd, f"scan{scan_id}_VLM_image_{title}.png")
         if dry_run:
             logger.info(f"Dry run: Not saving image to {filename}")
