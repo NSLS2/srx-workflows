@@ -3,6 +3,7 @@ import traceback
 from prefect import task, flow, get_run_logger
 from prefect.blocks.notifications import SlackWebhook
 from prefect.context import FlowRunContext
+from prefect.settings import PREFECT_UI_URL
 
 from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
@@ -24,7 +25,8 @@ def get_api_key_from_env():
 
 def slack(func):
     """
-    Send a message to mon-prefect slack channel about the flow-run status.
+    Send a message to mon-prefect and mon-prefect-im slack channels if the flow-run failed.
+    Send a message to mon-prefect-srx slack channel with the flow-run status.
     Send a message to mon-bluesky slack channel if the bluesky-run failed.
 
     NOTE: the name of this inner function is the same as the real end_of_workflow() function because
@@ -38,6 +40,8 @@ def slack(func):
         # Load slack credentials that are saved in Prefect.
         mon_prefect = SlackWebhook.load("mon-prefect")
         mon_bluesky = SlackWebhook.load("mon-bluesky")
+        mon_prefect_srx = SlackWebhook.load("mon-prefect-srx")
+        mon_prefect_im = SlackWebhook.load("mon-prefect-im")
 
         # Get the uid.
         uid = stop_doc["run_start"]
@@ -59,18 +63,24 @@ def slack(func):
         try:
             result = func(stop_doc, api_key=api_key, dry_run=dry_run)
 
-            # Send a message to mon-prefect if flow-run is successful.
-            mon_prefect.notify(
-                f":white_check_mark: {CATALOG_NAME} flow-run successful. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}```"
-            )
+            # Send a message to mon-prefect-srx if flow-run is successful.
+            message = f":white_check_mark: {CATALOG_NAME} flow-run successful. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}```"
+            mon_prefect_srx.notify(message)
             return result
         except Exception as e:
             tb = traceback.format_exception_only(e)
 
-            # Send a message to mon-prefect if flow-run failed.
-            mon_prefect.notify(
-                f":bangbang: {CATALOG_NAME} flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
+            # Send a message to mon-prefect-srx, mon-prefect if flow-run failed.
+            message = f":bangbang: {CATALOG_NAME} flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
+            mon_prefect.notify(message)
+            mon_prefect_srx.notify(message)
+            flow_run = FlowRunContext.get().flow_run
+            # Add link to flow-run for the message to mon-prefect-im.
+            program_message = (
+                f":bangbang: {CATALOG_NAME} flow-run failed. <https://{PREFECT_UI_URL.value()}/flow-runs/"
+                + f"flow-run/{flow_run.id}|the flow run link> (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
             )
+            mon_prefect_im.notify(program_message)
             raise
 
     return end_of_run_workflow
