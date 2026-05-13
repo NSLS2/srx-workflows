@@ -9,18 +9,9 @@ from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
 from vlm_snapshot_exporter import vlm_image_exporter
 from logscan import logscan
-from dotenv import load_dotenv
-import os
 from data_validation import get_run
 
 CATALOG_NAME = "srx"
-
-
-def get_api_key_from_env():
-    with open("/srv/container.secret", "r") as secrets:
-        load_dotenv(stream=secrets)
-    api_key = os.environ["TILED_API_KEY"]
-    return api_key
 
 
 def slack(func):
@@ -45,10 +36,6 @@ def slack(func):
 
         # Get the uid.
         uid = stop_doc["run_start"]
-
-        # Get Tiled API key, if not set already
-        if not api_key:
-            api_key = get_api_key_from_env()
 
         # Get the scan_id.
         run = get_run(uid, api_key=api_key)
@@ -77,7 +64,7 @@ def slack(func):
             flow_run = FlowRunContext.get().flow_run
             # Add link to flow-run for the message to mon-prefect-im.
             program_message = (
-                f":bangbang: {CATALOG_NAME} flow-run failed. <https://{PREFECT_UI_URL.value()}/flow-runs/"
+                f":bangbang: {CATALOG_NAME} flow-run failed. <{PREFECT_UI_URL.value()}/flow-runs/"
                 + f"flow-run/{flow_run.id}|the flow run link> (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
             )
             mon_prefect_im.notify(program_message)

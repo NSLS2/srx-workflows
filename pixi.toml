@@ -13,6 +13,7 @@ scikit-beam = "*"
 pre-commit = ">=4.3.0,<5"
 databroker = "*"
 pillow = ">=12.2.0,<13"
+python-dotenv = ">=1.2.2,<2"
 
 [pypi-dependencies]
 pyxrf = { git = "https://github.com/NSLS2/pyxrf.git", rev="7b7d868" }
