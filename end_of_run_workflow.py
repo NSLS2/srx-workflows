@@ -9,8 +9,6 @@ from xanes_exporter import xanes_exporter
 from xrf_hdf5_exporter import xrf_hdf5_exporter
 from vlm_snapshot_exporter import vlm_image_exporter
 from logscan import logscan
-from dotenv import load_dotenv
-import os
 from data_validation import get_run
 
 CATALOG_NAME = "srx"
