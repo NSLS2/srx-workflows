@@ -16,13 +16,6 @@ from data_validation import get_run
 CATALOG_NAME = "srx"
 
 
-def get_api_key_from_env():
-    with open("/srv/container.secret", "r") as secrets:
-        load_dotenv(stream=secrets)
-    api_key = os.environ["TILED_API_KEY"]
-    return api_key
-
-
 def slack(func):
     """
     Send a message to mon-prefect and mon-prefect-im slack channels if the flow-run failed.
@@ -45,10 +38,6 @@ def slack(func):
 
         # Get the uid.
         uid = stop_doc["run_start"]
-
-        # Get Tiled API key, if not set already
-        if not api_key:
-            api_key = get_api_key_from_env()
 
         # Get the scan_id.
         run = get_run(uid, api_key=api_key)
