@@ -7,7 +7,7 @@ import pyxrf
 import dask
 from pyxrf.api import make_hdf
 
-from data_validation import get_run
+from data_validation import get_run, get_api_key_from_env
 from xanes_exporter import create_subdir
 
 # from pyxrf.api import make_hdf
@@ -53,9 +53,12 @@ def export_xrf_hdf5(scanid, api_key=None, dry_run=False):
     prefix = "autorun_scan2D_"
 
     logger.info(f"{working_dir =}")
-    os.environ["TILED_API_KEY"] = (
-        api_key  # pyxrf assumes Tiled API key as an environment variable
-    )
+    if not api_key:
+        get_api_key_from_env()  # in container, get Tiled API key from file
+    else:
+        os.environ["TILED_API_KEY"] = (
+            api_key  # pyxrf assumes Tiled API key as an environment variable
+        )
     if dry_run:
         logger.info("Dry run: not creating HDF5 file using PyXRF")
     else:
